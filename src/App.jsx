@@ -12,6 +12,7 @@ import Dashboard from './pages/Admin/Dashboard'
 import ManageProducts from './pages/Admin/ManageProducts'
 import Orders from './pages/Admin/Orders'
 import AdminRoutes from './routes/AdminRoutes'
+import AddProduct from './pages/Admin/addProduct'
 
 function App() {
   
@@ -29,7 +30,7 @@ function App() {
           <Route element={<AdminRoutes />} >
             <Route path='/manage' element={<ManageProducts/>} ></Route>
             <Route path='/Dashboard' element={<Dashboard/>} ></Route>
-            
+            <Route path="/addProduct" element={<AddProduct />}></Route>
             <Route path='/orders' element={<Orders/>} ></Route>
           </Route>
 

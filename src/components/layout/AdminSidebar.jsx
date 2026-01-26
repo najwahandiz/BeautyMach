@@ -3,7 +3,7 @@ import { LayoutDashboard, Package, ShoppingCart, Eye } from "lucide-react";
 
 export default function AdminSidebar() {
   return (
-    <aside className="h-screen w-64 bg-white border-r flex flex-col justify-between">
+    <aside className="h-screen fixed w-64 bg-white border-r flex flex-col justify-between">
       
       {/* TOP SECTION */}
       <div>
