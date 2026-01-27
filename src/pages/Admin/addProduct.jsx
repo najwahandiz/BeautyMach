@@ -47,7 +47,7 @@ export default function AddProduct() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newProduct = {
       ...product,
@@ -56,7 +56,8 @@ export default function AddProduct() {
       minStock: Number(product.minStock),
       ingredients: product.ingredients.split(","),
     };
-    dispatch(createProduct(newProduct));
+    await dispatch(createProduct(newProduct));
+    showToast("Product added successfully!", "success");
     navigate("/manage");
   };
 

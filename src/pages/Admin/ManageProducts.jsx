@@ -103,29 +103,28 @@ export default function ManageProducts() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 text-gray-800">
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 text-gray-800">
       <div className="max-w-7xl mx-auto">
         
         {/* Page Header */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-[#9E3B3B]">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#9E3B3B]">
               Inventory Management
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
               Refined Skincare & Cosmetics Catalog
             </p>
           </div>
           <Link
             to="/addProduct"
-            className="px-6 py-2.5 bg-[#9E3B3B] text-white font-medium rounded-lg hover:bg-[#7d2f2f] transition-all shadow-md text-center"
+            className="px-4 sm:px-6 py-2.5 bg-[#9E3B3B] text-white font-medium rounded-lg hover:bg-[#7d2f2f] transition-all shadow-md text-center text-sm sm:text-base"
           >
             + Add Product
           </Link>
         </div>
 
-        {/* Filters Section (uncomment to enable) */}
-        
+        {/* Filters Section */}
         <ProductFilters
           searchTerm={searchTerm}
           onSearchChange={handleSearchChange}
@@ -135,10 +134,9 @@ export default function ManageProducts() {
           onStockFilterChange={setStockFilter}
           categories={categories}
         /> 
-       
 
-        {/* Products Table */}
-        <div className="bg-white rounded-xl shadow-md border border-[#e5e5d1] overflow-hidden">
+        {/* Desktop Table View */}
+        <div className="hidden md:block bg-white rounded-xl shadow-md border border-[#e5e5d1] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               
@@ -163,13 +161,21 @@ export default function ManageProducts() {
                       
                       {/* Product Name & Category */}
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 bg-[#9E3B3B]/10 rounded flex items-center justify-center text-[#9E3B3B] font-bold">
-                            {product.name?.[0]}
-                          </div>
+                        <div className="flex items-center gap-4">
+                          {(product.imageUrl || product.image) ? (
+                            <img 
+                              src={product.imageUrl || product.image} 
+                              alt={product.name}
+                              className="h-16 w-16 rounded-xl object-cover border border-gray-200 shadow-sm"
+                            />
+                          ) : (
+                            <div className="h-16 w-16 bg-[#9E3B3B]/10 rounded-xl flex items-center justify-center text-[#9E3B3B] font-bold text-xl">
+                              {product.name?.[0]}
+                            </div>
+                          )}
                           <div>
                             <div className="font-medium text-gray-900">{product.name}</div>
-                            <div className="text-xs text-gray-500">{product.category}</div>
+                            <div className="text-xs text-gray-500 mt-1">{product.category}</div>
                           </div>
                         </div>
                       </td>
@@ -181,30 +187,30 @@ export default function ManageProducts() {
 
                       {/* Stock Status */}
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${status.bg} ${status.color}`}>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase ${status.bg} ${status.color}`}>
                           {status.text} ({product.stock})
                         </span>
                       </td>
 
                       {/* Price */}
-                      <td className="px-6 py-4 font-semibold">
+                      <td className="px-6 py-4 font-semibold text-lg">
                         ${product.price?.toFixed(2)}
                       </td>
 
                       {/* Action Buttons */}
                       <td className="px-6 py-4">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1.5 hover:bg-[#9E3B3B]/10 rounded cursor-pointer">
+                          <button className="p-2 hover:bg-[#9E3B3B]/10 rounded-lg cursor-pointer transition-colors">
                             <Eye size={18} color="gray" />
                           </button>
                           <button 
                             onClick={() => handleUpdateClick(product)}
-                            className="p-1.5 hover:bg-gray-100 rounded cursor-pointer"
+                            className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
                           >
                             <Edit size={18} color="gray" />
                           </button>
                           <button
-                            className="p-1.5 hover:bg-red-50 rounded cursor-pointer"
+                            className="p-2 hover:bg-red-50 rounded-lg cursor-pointer transition-colors"
                             onClick={() => handleDeleteClick(product.id)}
                           >
                             <Trash2 size={18} color="gray" />
@@ -220,7 +226,7 @@ export default function ManageProducts() {
             </table>
           </div>
 
-          {/* Pagination Footer */}
+          {/* Desktop Pagination Footer */}
           <div className="px-6 py-4 bg-[#FAF9F6] border-t border-gray-100 flex items-center justify-between">
             <p className="text-sm text-gray-600">
               Showing <span className="font-semibold">{startIndex + 1}</span> to{' '}
@@ -229,7 +235,6 @@ export default function ManageProducts() {
             </p>
 
             <div className="flex gap-2">
-              {/* Previous Button */}
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
@@ -238,7 +243,6 @@ export default function ManageProducts() {
                 <ChevronLeft size={20} />
               </button>
 
-              {/* Page Numbers */}
               <div className="flex items-center gap-1">
                 {[...Array(totalPages)].map((_, index) => (
                   <button
@@ -255,7 +259,6 @@ export default function ManageProducts() {
                 ))}
               </div>
 
-              {/* Next Button */}
               <button
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
@@ -266,6 +269,105 @@ export default function ManageProducts() {
             </div>
           </div>
         </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-4">
+          {currentProducts.map((product) => {
+            const status = getStockStatus(product.stock || 0);
+            
+            return (
+              <div 
+                key={product.id} 
+                className="bg-white rounded-xl shadow-md border border-[#e5e5d1] p-4"
+              >
+                <div className="flex gap-4">
+                  {/* Product Image */}
+                  {(product.imageUrl || product.image) ? (
+                    <img 
+                      src={product.imageUrl || product.image} 
+                      alt={product.name}
+                      className="h-24 w-24 rounded-xl object-cover border border-gray-200 shadow-sm flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="h-24 w-24 bg-[#9E3B3B]/10 rounded-xl flex items-center justify-center text-[#9E3B3B] font-bold text-2xl flex-shrink-0">
+                      {product.name?.[0]}
+                    </div>
+                  )}
+
+                  {/* Product Info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate">{product.name}</h3>
+                    <p className="text-xs text-gray-500 mt-1">{product.category}</p>
+                    <p className="font-bold text-lg text-[#9E3B3B] mt-2">${product.price?.toFixed(2)}</p>
+                    <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase mt-2 ${status.bg} ${status.color}`}>
+                      {status.text} ({product.stock})
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-gray-100">
+                  <button className="p-2 hover:bg-[#9E3B3B]/10 rounded-lg cursor-pointer transition-colors">
+                    <Eye size={20} color="gray" />
+                  </button>
+                  <button 
+                    onClick={() => handleUpdateClick(product)}
+                    className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
+                  >
+                    <Edit size={20} color="gray" />
+                  </button>
+                  <button
+                    className="p-2 hover:bg-red-50 rounded-lg cursor-pointer transition-colors"
+                    onClick={() => handleDeleteClick(product.id)}
+                  >
+                    <Trash2 size={20} color="gray" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Mobile Pagination */}
+          <div className="bg-white rounded-xl shadow-md border border-[#e5e5d1] p-4">
+            <p className="text-sm text-gray-600 text-center mb-3">
+              Showing {startIndex + 1} - {Math.min(endIndex, sortedProducts.length)} of {sortedProducts.length}
+            </p>
+            <div className="flex justify-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              <div className="flex items-center gap-1">
+                {[...Array(totalPages)].map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentPage(index + 1)}
+                    className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                      currentPage === index + 1
+                        ? 'bg-[#9E3B3B] text-white shadow-sm'
+                        : 'hover:bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* Delete Confirmation Popup */}
@@ -274,8 +376,8 @@ export default function ManageProducts() {
         onClose={() => setIsDeleteOpen(false)}
         productDelete={productToDelete}
       />
-      {/* Update Confirmation Popup */}
 
+      {/* Update Confirmation Popup */}
       <PopUpUpdate
         isOpen={isUpdateOpen}
         onClose={() => setIsUpdateOpen(false)}
