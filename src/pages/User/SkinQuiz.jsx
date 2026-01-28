@@ -4,23 +4,34 @@
  * A multi-step quiz that determines user's skin type and provides
  * AI-powered personalized skincare recommendations.
  * 
+ * KEY BEHAVIOR:
+ * - If user already completed quiz → show saved results automatically
+ * - If not → start fresh quiz
+ * - Restart button clears results and allows retaking
+ * 
  * Features:
  * - Step-by-step questions
  * - Progress indicator
  * - Skin type analysis
  * - AI-powered product recommendations
+ * - Add to Cart functionality
  */
 
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchProducts } from '../../features/products/productsThunks';
-import { saveQuizResultThunk, saveRecommendationsThunk } from '../../features/user/userThunks';
-import { selectIsLoggedIn } from '../../features/user/userSlice';
+import { saveQuizResultThunk, saveRecommendationsThunk, clearQuizDataThunk } from '../../features/user/userThunks';
+import { selectIsLoggedIn, selectQuizResult, selectRecommendations } from '../../features/user/userSlice';
+import { addToCart, selectIsInCart } from '../../features/cart/cartSlice';
 import { ProgressBar, QuestionCard, QuizButton } from '../../components/quiz/QuizComponents';
 import { analyzeAnswers } from '../../utils/analyzeQuizResult';
 import { getRecommendations, getAIProvider } from '../../services/aiRecommendation';
-import { Sparkles, ArrowLeft, ArrowRight, RotateCcw, Loader2, ShoppingBag, User } from 'lucide-react';
+import { 
+  Sparkles, ArrowLeft, ArrowRight, RotateCcw, Loader2, 
+  ShoppingBag, User, Check, ChevronRight, Star, Droplets 
+} from 'lucide-react';
+import { useToast } from '../../components/Toast';
 
 /* ============ Quiz Questions Data ============ */
 const quizQuestions = [
@@ -80,20 +91,123 @@ const quizQuestions = [
 
 /* ============ Skin Type Info Data ============ */
 const skinTypeInfo = {
-  dry: { title: "Dry Skin", emoji: "🏜️", color: "bg-amber-50 text-amber-700" },
-  oily: { title: "Oily Skin", emoji: "✨", color: "bg-green-50 text-green-700" },
-  combination: { title: "Combination Skin", emoji: "⚖️", color: "bg-blue-50 text-blue-700" },
-  sensitive: { title: "Sensitive Skin", emoji: "🌸", color: "bg-pink-50 text-pink-700" },
-  normal: { title: "Normal Skin", emoji: "🌟", color: "bg-purple-50 text-purple-700" }
+  dry: { title: "Dry Skin", emoji: "🏜️", color: "bg-amber-50 text-amber-700 border-amber-200", gradient: "from-amber-500 to-orange-500" },
+  oily: { title: "Oily Skin", emoji: "✨", color: "bg-emerald-50 text-emerald-700 border-emerald-200", gradient: "from-emerald-500 to-teal-500" },
+  combination: { title: "Combination Skin", emoji: "⚖️", color: "bg-blue-50 text-blue-700 border-blue-200", gradient: "from-blue-500 to-indigo-500" },
+  sensitive: { title: "Sensitive Skin", emoji: "🌸", color: "bg-pink-50 text-pink-700 border-pink-200", gradient: "from-pink-500 to-rose-500" },
+  normal: { title: "Normal Skin", emoji: "🌟", color: "bg-purple-50 text-purple-700 border-purple-200", gradient: "from-purple-500 to-violet-500" }
 };
 
 /* ============ Routine Step Labels ============ */
 const routineSteps = {
-  cleanser: { label: "Cleanser", icon: "🧴", step: 1 },
-  serum: { label: "Serum", icon: "💧", step: 2 },
-  moisturizer: { label: "Moisturizer", icon: "🧴", step: 3 },
-  sunscreen: { label: "Sunscreen", icon: "☀️", step: 4 }
+  cleanser: { label: "Cleanser", icon: "🧴", step: 1, description: "Start your routine" },
+  serum: { label: "Serum", icon: "💧", step: 2, description: "Target your concerns" },
+  moisturizer: { label: "Moisturizer", icon: "🧴", step: 3, description: "Lock in hydration" },
+  sunscreen: { label: "Sunscreen", icon: "☀️", step: 4, description: "Protect your skin" }
 };
+
+/* ============ Product Card Component with Add to Cart ============ */
+function RecommendedProductCard({ stepKey, stepInfo, recommendation, product, dispatch }) {
+  const { showToast } = useToast();
+  const isInCart = useSelector(state => selectIsInCart(state, product?.id));
+  
+  const handleAddToCart = () => {
+    if (product) {
+      dispatch(addToCart({
+        id: product.id,
+        name: product.name || recommendation.name,
+        price: product.price || 0,
+        imageUrl: product.imageUrl || product.image || '',
+        category: stepKey
+      }));
+      showToast(`${product.name || recommendation.name} added to cart!`, 'success');
+    }
+  };
+
+  return (
+    <div className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-[#9E3B3B]/10 transition-all duration-500">
+      {/* Step Header */}
+      <div className="bg-gradient-to-r from-[#9E3B3B]/5 to-[#ea7b7b]/5 px-5 py-3 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] text-white flex items-center justify-center text-sm font-bold shadow-lg">
+            {stepInfo.step}
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{stepInfo.description}</p>
+            <p className="font-semibold text-gray-800 flex items-center gap-2">
+              <span>{stepInfo.icon}</span>
+              {stepInfo.label}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Product Content */}
+      <div className="p-5">
+        <div className="flex gap-4">
+          {/* Product Image */}
+          {product?.imageUrl || product?.image ? (
+            <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100 group-hover:scale-105 transition-transform duration-300">
+              <img 
+                src={product.imageUrl || product.image} 
+                alt={recommendation.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-[#9E3B3B]/10 to-[#ea7b7b]/10 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-8 h-8 text-[#9E3B3B]/40" />
+            </div>
+          )}
+
+          {/* Product Info */}
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-gray-900 text-lg mb-1 truncate group-hover:text-[#9E3B3B] transition-colors">
+              {recommendation.name}
+            </h3>
+            <p className="text-sm text-gray-500 line-clamp-2 mb-3 leading-relaxed">
+              {recommendation.reason}
+            </p>
+          </div>
+        </div>
+
+        {/* Price & Add to Cart */}
+        {product && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+            <div>
+              <p className="text-xs text-gray-400">Price</p>
+              <p className="text-2xl font-bold text-[#9E3B3B]">
+                ${product.price?.toFixed(2) || '0.00'}
+              </p>
+            </div>
+            
+            <button 
+              onClick={handleAddToCart}
+              disabled={isInCart}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                isInCart 
+                  ? 'bg-emerald-100 text-emerald-700 cursor-default' 
+                  : 'bg-gradient-to-r from-[#9E3B3B] to-[#b54949] text-white hover:shadow-lg hover:shadow-[#9E3B3B]/30 hover:scale-105'
+              }`}
+            >
+              {isInCart ? (
+                <>
+                  <Check size={16} />
+                  In Cart
+                </>
+              ) : (
+                <>
+                  <ShoppingBag size={16} />
+                  Add to Cart
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 /* ============ Main Quiz Component ============ */
 export default function SkinQuiz() {
@@ -101,21 +215,38 @@ export default function SkinQuiz() {
   const navigate = useNavigate();
   const { productsData } = useSelector((state) => state.products);
   const isLoggedIn = useSelector(selectIsLoggedIn);
+  
+  // Get saved data from Redux (persisted in localStorage)
+  const savedQuizResult = useSelector(selectQuizResult);
+  const savedRecommendations = useSelector(selectRecommendations);
 
   // Quiz state
   const [currentStep, setCurrentStep] = useState(-1); // -1 = intro
   const [answers, setAnswers] = useState(Array(quizQuestions.length).fill(null));
   
-  // Results state
+  // Results state (local for new quiz, falls back to saved)
   const [quizResult, setQuizResult] = useState(null);
   const [recommendations, setRecommendations] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  
+  // View mode: 'intro', 'quiz', 'results'
+  const [viewMode, setViewMode] = useState('intro');
 
   const totalSteps = quizQuestions.length;
   const hasAnswer = currentStep >= 0 && currentStep < totalSteps && answers[currentStep] !== null;
 
-  // Fetch products on mount - always fetch to ensure fresh data
+  // Check if user already has saved results
+  useEffect(() => {
+    if (isLoggedIn && savedQuizResult && savedRecommendations) {
+      // User already completed quiz - show results directly
+      setQuizResult(savedQuizResult);
+      setRecommendations(savedRecommendations);
+      setViewMode('results');
+    }
+  }, [isLoggedIn, savedQuizResult, savedRecommendations]);
+
+  // Fetch products on mount
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
@@ -146,19 +277,22 @@ export default function SkinQuiz() {
           dispatch(saveQuizResultThunk(result));
         }
         
-        // Ensure we have products - fetch if needed
+        // Ensure we have products
         let products = productsData;
         
         if (!products || products.length === 0) {
           console.log('⚠️ No products in store, fetching fresh...');
-          // Fetch products and wait for result
           const fetchResult = await dispatch(fetchProducts());
-          // Get products from the fetch result
           products = fetchResult.payload || [];
-          console.log('✅ Fetched products:', products.length);
         }
         
-        // Get AI recommendations with the products
+        if (!products || products.length === 0) {
+          setError('Unable to load products. Please check your internet connection and try again.');
+          setIsLoading(false);
+          return;
+        }
+        
+        // Get AI recommendations
         console.log('📦 Sending products to AI:', products.length);
         const recs = await getRecommendations(result, products);
         setRecommendations(recs);
@@ -168,8 +302,8 @@ export default function SkinQuiz() {
           dispatch(saveRecommendationsThunk(recs));
         }
         
-        // Move to results screen
-        setCurrentStep(totalSteps);
+        // Show results
+        setViewMode('results');
       } catch (err) {
         console.error('Error getting recommendations:', err);
         setError('Failed to generate recommendations. Please try again.');
@@ -184,21 +318,30 @@ export default function SkinQuiz() {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     } else if (currentStep === 0) {
+      setViewMode('intro');
       setCurrentStep(-1);
     }
   };
 
-  /* --- Restart quiz --- */
+  /* --- Restart quiz (clear everything) --- */
   const handleRestart = () => {
+    // Clear Redux state (and localStorage)
+    if (isLoggedIn) {
+      dispatch(clearQuizDataThunk());
+    }
+    
+    // Reset local state
     setCurrentStep(-1);
     setAnswers(Array(quizQuestions.length).fill(null));
     setQuizResult(null);
     setRecommendations(null);
     setError(null);
+    setViewMode('intro');
   };
 
   /* --- Start quiz --- */
   const handleStart = () => {
+    setViewMode('quiz');
     setCurrentStep(0);
   };
 
@@ -208,59 +351,88 @@ export default function SkinQuiz() {
   };
 
   return (
-    <div className="min-h-screen ">
-      <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
+    <div className="min-h-screen bg-gradient-to-b from-white via-[#fffaf5] to-white">
+      <div className="max-w-3xl mx-auto px-4 py-8 sm:py-12">
 
         {/* ============ INTRO SCREEN ============ */}
-        {currentStep === -1 && (
+        {viewMode === 'intro' && (
           <div className="text-center animate-fadeIn">
-            <div className="mb-8">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] flex items-center justify-center shadow-lg shadow-[#9E3B3B]/20">
-                <Sparkles size={36} className="text-white" />
+            {/* Hero Section */}
+            <div className="mb-10">
+              <div className="relative inline-block mb-6">
+                <div className="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] flex items-center justify-center shadow-2xl shadow-[#9E3B3B]/30 rotate-3">
+                  <Sparkles size={42} className="text-white" />
+                </div>
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
+                  <Star size={16} className="text-[#9E3B3B] fill-current" />
+                </div>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 mb-4">
-                Discover Your Skin Type
+              
+              <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                Discover Your
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#9E3B3B] to-[#ea7b7b]">
+                  Perfect Routine
+                </span>
               </h1>
-              <p className="text-gray-600 text-lg max-w-md mx-auto leading-relaxed">
-                Take our quick 5-question quiz to get personalized skincare recommendations powered by AI.
+              <p className="text-gray-500 text-lg max-w-md mx-auto leading-relaxed">
+                Take our expert-designed quiz and get AI-powered skincare recommendations tailored just for you.
               </p>
             </div>
 
-            <div className="bg-white rounded-3xl p-6 sm:p-8 mb-8 shadow-sm border border-gray-100">
-              <h3 className="font-semibold text-gray-900 mb-4">What you'll discover:</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                <div className="p-4 bg-[#fffaf5] rounded-2xl">
-                  <div className="text-2xl mb-2">🔍</div>
-                  <p className="text-gray-700 font-medium">Your skin type</p>
+            {/* Features Card */}
+            <div className="bg-white rounded-3xl p-8 mb-10 shadow-xl shadow-gray-100/50 border border-gray-100">
+              <h3 className="font-semibold text-gray-800 mb-6 text-lg">What you'll discover</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div className="p-5 bg-gradient-to-br from-[#9E3B3B]/5 to-[#ea7b7b]/5 rounded-2xl border border-[#9E3B3B]/10 hover:scale-105 transition-transform">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] flex items-center justify-center">
+                    <Droplets size={24} className="text-white" />
+                  </div>
+                  <p className="text-gray-700 font-semibold">Your Skin Type</p>
+                  <p className="text-sm text-gray-500 mt-1">Dry, oily, combination & more</p>
                 </div>
-                <div className="p-4 bg-[#fffaf5] rounded-2xl">
-                  <div className="text-2xl mb-2">🤖</div>
-                  <p className="text-gray-700 font-medium">AI recommendations</p>
+                <div className="p-5 bg-gradient-to-br from-[#9E3B3B]/5 to-[#ea7b7b]/5 rounded-2xl border border-[#9E3B3B]/10 hover:scale-105 transition-transform">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] flex items-center justify-center">
+                    <Sparkles size={24} className="text-white" />
+                  </div>
+                  <p className="text-gray-700 font-semibold">AI Analysis</p>
+                  <p className="text-sm text-gray-500 mt-1">Powered by smart technology</p>
                 </div>
-                <div className="p-4 bg-[#fffaf5] rounded-2xl">
-                  <div className="text-2xl mb-2">✨</div>
-                  <p className="text-gray-700 font-medium">Perfect routine</p>
+                <div className="p-5 bg-gradient-to-br from-[#9E3B3B]/5 to-[#ea7b7b]/5 rounded-2xl border border-[#9E3B3B]/10 hover:scale-105 transition-transform">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] flex items-center justify-center">
+                    <ShoppingBag size={24} className="text-white" />
+                  </div>
+                  <p className="text-gray-700 font-semibold">Custom Routine</p>
+                  <p className="text-sm text-gray-500 mt-1">Products picked for you</p>
                 </div>
               </div>
             </div>
 
-            <QuizButton onClick={handleStart}>
-              Start Quiz
-              <ArrowRight size={18} className="inline ml-2" />
-            </QuizButton>
-            <p className="text-gray-400 text-sm mt-4">Takes only 2 minutes</p>
+            {/* CTA Button */}
+            <button 
+              onClick={handleStart}
+              className="inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-[#9E3B3B] to-[#b54949] text-white font-bold rounded-2xl shadow-xl shadow-[#9E3B3B]/30 hover:shadow-2xl hover:shadow-[#9E3B3B]/40 hover:scale-105 transition-all duration-300 text-lg"
+            >
+              Start Your Journey
+              <ArrowRight size={22} />
+            </button>
+            <p className="text-gray-400 text-sm mt-5">✨ Only 5 questions • Takes 2 minutes</p>
           </div>
         )}
 
         {/* ============ QUESTION SCREENS ============ */}
-        {currentStep >= 0 && currentStep < totalSteps && !isLoading && (
+        {viewMode === 'quiz' && currentStep >= 0 && currentStep < totalSteps && !isLoading && (
           <div className="animate-fadeIn">
             <ProgressBar currentStep={currentStep + 1} totalSteps={totalSteps} />
 
-            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 mb-6">
-              <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 mb-6 leading-snug">
-                {quizQuestions[currentStep].question}
-              </h2>
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-gray-100/50 border border-gray-100 mb-6">
+              <div className="text-center mb-6">
+                <span className="inline-block px-3 py-1 bg-[#9E3B3B]/10 text-[#9E3B3B] rounded-full text-sm font-medium mb-4">
+                  Question {currentStep + 1} of {totalSteps}
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  {quizQuestions[currentStep].question}
+                </h2>
+              </div>
 
               <div className="space-y-3">
                 {quizQuestions[currentStep].options.map((option, index) => (
@@ -290,32 +462,35 @@ export default function SkinQuiz() {
 
         {/* ============ LOADING SCREEN ============ */}
         {isLoading && (
-          <div className="text-center py-16 animate-fadeIn">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] flex items-center justify-center">
-              <Loader2 size={36} className="text-white animate-spin" />
+          <div className="text-center py-20 animate-fadeIn">
+            <div className="relative inline-block mb-8">
+              <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] flex items-center justify-center shadow-2xl shadow-[#9E3B3B]/30">
+                <Loader2 size={42} className="text-white animate-spin" />
+              </div>
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] animate-ping opacity-20"></div>
             </div>
-            <h2 className="text-2xl font-serif font-bold text-gray-900 mb-3">
+            <h2 className="text-3xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
               Analyzing Your Skin...
             </h2>
-            <p className="text-gray-500">
+            <p className="text-gray-500 text-lg">
               Our AI is creating your personalized routine
             </p>
-            <div className="flex justify-center gap-1 mt-6">
-              <div className="w-2 h-2 bg-[#9E3B3B] rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-              <div className="w-2 h-2 bg-[#9E3B3B] rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-              <div className="w-2 h-2 bg-[#9E3B3B] rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+            <div className="flex justify-center gap-2 mt-8">
+              <div className="w-3 h-3 bg-[#9E3B3B] rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+              <div className="w-3 h-3 bg-[#9E3B3B] rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+              <div className="w-3 h-3 bg-[#9E3B3B] rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
             </div>
           </div>
         )}
 
         {/* ============ ERROR SCREEN ============ */}
         {error && (
-          <div className="text-center py-16 animate-fadeIn">
-            <div className="text-5xl mb-4">😕</div>
-            <h2 className="text-2xl font-serif font-bold text-gray-900 mb-3">
+          <div className="text-center py-20 animate-fadeIn">
+            <div className="text-6xl mb-6">😕</div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
               Oops! Something went wrong
             </h2>
-            <p className="text-gray-500 mb-6">{error}</p>
+            <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">{error}</p>
             <QuizButton onClick={handleRestart}>
               <RotateCcw size={18} className="inline mr-2" />
               Try Again
@@ -324,46 +499,47 @@ export default function SkinQuiz() {
         )}
 
         {/* ============ RESULTS SCREEN ============ */}
-        {currentStep === totalSteps && quizResult && recommendations && !isLoading && !error && (
+        {viewMode === 'results' && quizResult && recommendations && !isLoading && !error && (
           <div className="animate-fadeIn">
             {/* Skin Type Header */}
-            <div className="text-center mb-8">
-              <div className="text-6xl mb-4">
-                {skinTypeInfo[quizResult.skinType]?.emoji}
+            <div className="text-center mb-10">
+              <div className="relative inline-block mb-6">
+                <div className={`text-7xl sm:text-8xl p-4 bg-white rounded-3xl shadow-xl border-2 ${skinTypeInfo[quizResult.skinType]?.color.replace('text-', 'border-').split(' ')[2]}`}>
+                  {skinTypeInfo[quizResult.skinType]?.emoji}
+                </div>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 mb-2">
-                Your Skin Type
-              </h1>
-              <span className={`inline-block px-4 py-2 rounded-full text-lg font-bold ${skinTypeInfo[quizResult.skinType]?.color}`}>
+              
+              <p className="text-gray-500 uppercase tracking-wider text-sm mb-2">Your skin type is</p>
+              <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
                 {skinTypeInfo[quizResult.skinType]?.title}
-              </span>
+              </h1>
+              
+              {/* Concerns */}
+              {quizResult.concerns && quizResult.concerns.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-2 mt-6">
+                  {quizResult.concerns.map((concern, index) => (
+                    <span
+                      key={index}
+                      className="px-4 py-2 bg-white border border-[#9E3B3B]/20 rounded-full text-sm font-medium text-gray-700 shadow-sm"
+                    >
+                      {concern}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Concerns */}
-            {quizResult.concerns.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-2 mb-8">
-                {quizResult.concerns.map((concern, index) => (
-                  <span
-                    key={index}
-                    className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-600"
-                  >
-                    {concern}
-                  </span>
-                ))}
-              </div>
-            )}
-
             {/* AI Summary */}
-            <div className="bg-gradient-to-r from-[#9E3B3B]/10 to-[#ea7b7b]/10 rounded-2xl p-5 mb-8 border border-[#9E3B3B]/20">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-white rounded-lg">
-                  <Sparkles size={20} className="text-[#9E3B3B]" />
+            <div className="bg-gradient-to-r from-[#9E3B3B]/10 via-white to-[#ea7b7b]/10 rounded-3xl p-6 mb-10 border border-[#9E3B3B]/20 shadow-lg">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-white rounded-2xl shadow-md flex-shrink-0">
+                  <Sparkles size={24} className="text-[#9E3B3B]" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#9E3B3B] mb-1">
-                    Powered by {getAIProvider()}
+                  <p className="text-sm font-semibold text-[#9E3B3B] mb-1 uppercase tracking-wider">
+                    AI Analysis · {getAIProvider()}
                   </p>
-                  <p className="text-gray-700 leading-relaxed">
+                  <p className="text-gray-700 leading-relaxed text-lg">
                     {recommendations.summary}
                   </p>
                 </div>
@@ -371,87 +547,63 @@ export default function SkinQuiz() {
             </div>
 
             {/* Recommended Routine */}
-            <h2 className="text-xl font-serif font-bold text-gray-900 mb-4 text-center">
-              Your Personalized Routine
-            </h2>
+            <div className="mb-10">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  Your Personalized Routine
+                </h2>
+                <p className="text-gray-500 mt-2">Products selected specifically for your skin</p>
+              </div>
 
-            <div className="space-y-4 mb-8">
-              {Object.entries(routineSteps).map(([key, { label, icon, step }]) => {
-                const rec = recommendations.routine[key];
-                if (!rec) return null;
+              <div className="grid gap-5">
+                {Object.entries(routineSteps).map(([key, stepInfo]) => {
+                  const rec = recommendations.routine[key];
+                  if (!rec) return null;
 
-                const product = getProductDetails(rec.productId);
+                  const product = getProductDetails(rec.productId);
 
-                return (
-                  <div
-                    key={key}
-                    className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-start gap-4">
-                      {/* Step number */}
-                      <div className="w-10 h-10 rounded-full bg-[#9E3B3B] text-white flex items-center justify-center font-bold flex-shrink-0">
-                        {step}
-                      </div>
-
-                      {/* Product info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-lg">{icon}</span>
-                          <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-                            {label}
-                          </span>
-                        </div>
-                        <h3 className="font-bold text-gray-900 mb-2">{rec.name}</h3>
-                        <p className="text-sm text-gray-600 leading-relaxed mb-3">
-                          {rec.reason}
-                        </p>
-                        
-                        {/* Product price if available */}
-                        {product && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-lg font-bold text-[#9E3B3B]">
-                              ${product.price?.toFixed(2)}
-                            </span>
-                            <button className="flex items-center gap-2 px-4 py-2 bg-[#9E3B3B]/10 text-[#9E3B3B] rounded-lg text-sm font-medium hover:bg-[#9E3B3B]/20 transition-colors">
-                              <ShoppingBag size={16} />
-                              Add to Cart
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                  return (
+                    <RecommendedProductCard
+                      key={key}
+                      stepKey={key}
+                      stepInfo={stepInfo}
+                      recommendation={rec}
+                      product={product}
+                      dispatch={dispatch}
+                    />
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Save to Profile Notice */}
+            {/* Save Notice */}
             {isLoggedIn && (
-              <div className="text-center mb-6 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-                <p className="text-emerald-700 text-sm">
-                  ✓ Your results have been saved to your profile!
-                </p>
+              <div className="text-center mb-8 p-5 bg-emerald-50 rounded-2xl border border-emerald-200">
+                <div className="flex items-center justify-center gap-2 text-emerald-700">
+                  <Check size={20} />
+                  <span className="font-medium">Your results have been saved to your profile!</span>
+                </div>
               </div>
             )}
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <QuizButton variant="secondary" onClick={handleRestart}>
-                <RotateCcw size={18} className="inline mr-2" />
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={handleRestart}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:border-[#9E3B3B] hover:text-[#9E3B3B] transition-all duration-300"
+              >
+                <RotateCcw size={18} />
                 Retake Quiz
-              </QuizButton>
+              </button>
 
-              {isLoggedIn ? (
-                <QuizButton onClick={() => navigate('/profile')}>
-                  <User size={18} className="inline mr-2" />
-                  View Profile
-                </QuizButton>
-              ) : (
-                <QuizButton onClick={() => navigate('/profile')}>
-                  Save Results
-                  <ArrowRight size={18} className="inline ml-2" />
-                </QuizButton>
-              )}
+              <button 
+                onClick={() => navigate('/profile')}
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-[#9E3B3B] to-[#b54949] text-white font-semibold rounded-xl shadow-lg shadow-[#9E3B3B]/30 hover:shadow-xl hover:scale-105 transition-all duration-300"
+              >
+                <User size={18} />
+                View Profile
+                <ChevronRight size={18} />
+              </button>
             </div>
           </div>
         )}
@@ -464,7 +616,7 @@ export default function SkinQuiz() {
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-fadeIn {
-          animation: fadeIn 0.4s ease-out;
+          animation: fadeIn 0.5s ease-out;
         }
       `}</style>
     </div>

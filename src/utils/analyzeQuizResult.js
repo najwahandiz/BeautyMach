@@ -71,7 +71,7 @@ export function analyzeAnswers(answers) {
   if (answers[3] === 0) scores.sensitive += 2;
   if (answers[3] === 1) scores.sensitive += 1;
 
-  // Determine skin type (highest score wins)
+  // Pick the skin type with the highest score
   const skinType = Object.keys(scores).reduce((a, b) => 
     scores[a] > scores[b] ? a : b
   );

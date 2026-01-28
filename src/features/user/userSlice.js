@@ -24,7 +24,7 @@
  */
 
 import { createSlice } from '@reduxjs/toolkit';
-import { loginUser, loadUserFromStorage, logoutUser, saveQuizResultThunk, saveRecommendationsThunk } from './userThunks';
+import { loginUser, loadUserFromStorage, logoutUser, saveQuizResultThunk, saveRecommendationsThunk, clearQuizDataThunk } from './userThunks';
 
 // Initial state - what we start with
 const initialState = {
@@ -140,6 +140,12 @@ const userSlice = createSlice({
       // ===== SAVE RECOMMENDATIONS =====
       .addCase(saveRecommendationsThunk.fulfilled, (state, action) => {
         state.recommendations = action.payload;
+      })
+
+      // ===== CLEAR QUIZ DATA =====
+      .addCase(clearQuizDataThunk.fulfilled, (state) => {
+        state.quizResult = null;
+        state.recommendations = null;
       });
   }
 });

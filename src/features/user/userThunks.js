@@ -151,3 +151,22 @@ export const updateUserProfileThunk = createAsyncThunk(
   }
 );
 
+/**
+ * Clear Quiz Data
+ * 
+ * Clears quiz result and recommendations from user data.
+ * This allows the user to restart the quiz fresh.
+ * 
+ * Usage:
+ * dispatch(clearQuizDataThunk())
+ */
+export const clearQuizDataThunk = createAsyncThunk(
+  'user/clearQuizData',
+  async () => {
+    // Clear quiz data from localStorage
+    updateUser({ quizResult: null, recommendations: null });
+    
+    return null;
+  }
+);
+

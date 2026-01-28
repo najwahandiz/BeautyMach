@@ -8,6 +8,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import productsReducer from '../features/products/productsSlice';
 import userReducer from '../features/user/userSlice';
+import cartReducer from '../features/cart/cartSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,5 +17,8 @@ export const store = configureStore({
     
     // User state - manages user profile, quiz results, recommendations
     user: userReducer,
+    
+    // Cart state - manages shopping cart
+    cart: cartReducer,
   },
 });
