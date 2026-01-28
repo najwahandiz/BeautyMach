@@ -15,39 +15,26 @@
  *       quantity: number   // How many of this item
  *     }
  *   ],
- *   totalQuantity: number,
- *   totalPrice: number
+ *   totalQuantity: number,  // Sum of all item quantities
+ *   totalPrice: number,     // Sum of (price * quantity) for all items
+ *   isOpen: boolean         // Controls sidebar visibility
  * }
+ * 
+ * HOW IT WORKS:
+ * 1. On app load, cart is initialized from localStorage (if exists)
+ * 2. Every cart change automatically saves to localStorage
+ * 3. Totals are recalculated after every change
  */
 
 import { createSlice } from '@reduxjs/toolkit';
+import { loadCartFromStorage, saveCartToStorage, clearCartStorage } from './cartUtils';
 
-// ===== LOCALSTORAGE HELPERS =====
-const CART_STORAGE_KEY = 'beautyMatch_cart';
+// ===== HELPER FUNCTION =====
 
-// Load cart from localStorage
-const loadCartFromStorage = () => {
-  try {
-    const stored = localStorage.getItem(CART_STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (error) {
-    console.error('Error loading cart from storage:', error);
-  }
-  return null;
-};
-
-// Save cart to localStorage
-const saveCartToStorage = (cart) => {
-  try {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-  } catch (error) {
-    console.error('Error saving cart to storage:', error);
-  }
-};
-
-// Calculate totals helper
+/**
+ * Calculate total quantity and total price from items array
+ * This runs after every cart modification
+ */
 const calculateTotals = (items) => {
   return items.reduce(
     (totals, item) => ({
@@ -58,37 +45,42 @@ const calculateTotals = (items) => {
   );
 };
 
-// Initial state - try to load from localStorage first
+// ===== INITIAL STATE =====
+
+// Try to load existing cart from localStorage, or use empty cart
 const storedCart = loadCartFromStorage();
 const initialState = storedCart || {
   items: [],
   totalQuantity: 0,
-  totalPrice: 0
+  totalPrice: 0,
+  isOpen: false  // Sidebar closed by default
 };
 
-// Create the slice
+// ===== CREATE THE SLICE =====
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
   
   reducers: {
     /**
-     * Add item to cart
-     * If item already exists, increase quantity
+     * ADD TO CART
+     * - If item exists: increase its quantity by 1
+     * - If item is new: add it with quantity 1
      * 
      * Usage: dispatch(addToCart({ id, name, price, imageUrl }))
      */
     addToCart: (state, action) => {
       const { id, name, price, imageUrl, category } = action.payload;
       
-      // Check if item already in cart
+      // Check if item already exists in cart
       const existingItem = state.items.find(item => item.id === id);
       
       if (existingItem) {
-        // Increase quantity
+        // Item exists - just increase quantity
         existingItem.quantity += 1;
       } else {
-        // Add new item
+        // New item - add to cart
         state.items.push({
           id,
           name,
@@ -109,12 +101,15 @@ const cartSlice = createSlice({
     },
 
     /**
-     * Remove item from cart completely
+     * REMOVE FROM CART
+     * Completely removes an item from the cart
      * 
      * Usage: dispatch(removeFromCart(productId))
      */
     removeFromCart: (state, action) => {
       const productId = action.payload;
+      
+      // Filter out the item
       state.items = state.items.filter(item => item.id !== productId);
       
       // Recalculate totals
@@ -127,9 +122,56 @@ const cartSlice = createSlice({
     },
 
     /**
-     * Update item quantity
+     * INCREASE QUANTITY
+     * Adds 1 to the item's quantity
      * 
-     * Usage: dispatch(updateQuantity({ id: productId, quantity: 2 }))
+     * Usage: dispatch(increaseQuantity(productId))
+     */
+    increaseQuantity: (state, action) => {
+      const productId = action.payload;
+      const item = state.items.find(item => item.id === productId);
+      
+      if (item) {
+        item.quantity += 1;
+        
+        // Recalculate totals
+        const totals = calculateTotals(state.items);
+        state.totalQuantity = totals.totalQuantity;
+        state.totalPrice = totals.totalPrice;
+        
+        // Save to localStorage
+        saveCartToStorage(state);
+      }
+    },
+
+    /**
+     * DECREASE QUANTITY
+     * Subtracts 1 from item's quantity (minimum is 1)
+     * 
+     * Usage: dispatch(decreaseQuantity(productId))
+     */
+    decreaseQuantity: (state, action) => {
+      const productId = action.payload;
+      const item = state.items.find(item => item.id === productId);
+      
+      if (item && item.quantity > 1) {
+        item.quantity -= 1;
+        
+        // Recalculate totals
+        const totals = calculateTotals(state.items);
+        state.totalQuantity = totals.totalQuantity;
+        state.totalPrice = totals.totalPrice;
+        
+        // Save to localStorage
+        saveCartToStorage(state);
+      }
+      // Note: If quantity is 1, we don't go lower. User must use removeFromCart.
+    },
+
+    /**
+     * UPDATE QUANTITY (set to specific number)
+     * 
+     * Usage: dispatch(updateQuantity({ id: productId, quantity: 3 }))
      */
     updateQuantity: (state, action) => {
       const { id, quantity } = action.payload;
@@ -154,7 +196,8 @@ const cartSlice = createSlice({
     },
 
     /**
-     * Clear entire cart
+     * CLEAR CART
+     * Removes all items from cart
      * 
      * Usage: dispatch(clearCart())
      */
@@ -164,61 +207,50 @@ const cartSlice = createSlice({
       state.totalPrice = 0;
       
       // Clear from localStorage
-      localStorage.removeItem(CART_STORAGE_KEY);
+      clearCartStorage();
     },
 
     /**
-     * Load cart from localStorage (useful on app start)
+     * OPEN CART SIDEBAR
      * 
-     * Usage: dispatch(loadCart())
+     * Usage: dispatch(openCart())
      */
-    loadCart: (state) => {
-      const stored = loadCartFromStorage();
-      if (stored) {
-        state.items = stored.items;
-        state.totalQuantity = stored.totalQuantity;
-        state.totalPrice = stored.totalPrice;
-      }
+    openCart: (state) => {
+      state.isOpen = true;
+    },
+
+    /**
+     * CLOSE CART SIDEBAR
+     * 
+     * Usage: dispatch(closeCart())
+     */
+    closeCart: (state) => {
+      state.isOpen = false;
+    },
+
+    /**
+     * TOGGLE CART SIDEBAR
+     * 
+     * Usage: dispatch(toggleCart())
+     */
+    toggleCart: (state) => {
+      state.isOpen = !state.isOpen;
     }
   }
 });
 
-// Export actions
+// ===== EXPORT ACTIONS =====
 export const { 
   addToCart, 
-  removeFromCart, 
+  removeFromCart,
+  increaseQuantity,
+  decreaseQuantity,
   updateQuantity, 
   clearCart,
-  loadCart 
+  openCart,
+  closeCart,
+  toggleCart
 } = cartSlice.actions;
 
-// Export reducer
+// ===== EXPORT REDUCER =====
 export default cartSlice.reducer;
-
-// ===== SELECTORS =====
-
-/**
- * Get all cart items
- * Usage: const items = useSelector(selectCartItems);
- */
-export const selectCartItems = (state) => state.cart.items;
-
-/**
- * Get total quantity
- * Usage: const count = useSelector(selectCartQuantity);
- */
-export const selectCartQuantity = (state) => state.cart.totalQuantity;
-
-/**
- * Get total price
- * Usage: const total = useSelector(selectCartTotal);
- */
-export const selectCartTotal = (state) => state.cart.totalPrice;
-
-/**
- * Check if item is in cart
- * Usage: const isInCart = useSelector(state => selectIsInCart(state, productId));
- */
-export const selectIsInCart = (state, productId) => 
-  state.cart.items.some(item => item.id === productId);
-

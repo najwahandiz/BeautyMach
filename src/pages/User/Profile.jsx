@@ -24,7 +24,8 @@ import {
   selectIsLoggedIn, selectUserProfile, selectQuizResult, selectRecommendations 
 } from '../../features/user/userSlice';
 import { logoutUser, updateUserProfileThunk, loginUser, clearQuizDataThunk } from '../../features/user/userThunks';
-import { addToCart, selectIsInCart } from '../../features/cart/cartSlice';
+import { addToCart, openCart } from '../../features/cart/cartSlice';
+import { selectIsInCart } from '../../features/cart/cartSelectors';
 import { useToast } from '../../components/Toast';
 
 /* ============ Skin Type Config ============ */

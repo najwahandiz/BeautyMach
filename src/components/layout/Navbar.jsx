@@ -2,7 +2,7 @@
  * Navbar.jsx
  * 
  * Modern, responsive navigation bar for BeautyMatch.
- * Features: Profile dropdown, shopping cart, skin quiz link
+ * Features: Profile dropdown, shopping cart with badge, skin quiz link
  * Admin Dashboard link only shows if admin is logged in.
  */
 
@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { selectIsLoggedIn, selectUserProfile } from '../../features/user/userSlice';
 import { logoutUser } from '../../features/user/userThunks';
+import { openCart } from '../../features/cart/cartSlice';
+import { selectCartQuantity } from '../../features/cart/cartSelectors';
 
 export default function Navbar() {
   const dispatch = useDispatch();
@@ -30,6 +32,9 @@ export default function Navbar() {
   // Get user state from Redux (for user profile)
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const profile = useSelector(selectUserProfile);
+  
+  // Get cart quantity from Redux
+  const cartQuantity = useSelector(selectCartQuantity);
   
   // Check if admin is logged in (from localStorage)
   // This is separate from user login!
@@ -75,6 +80,11 @@ export default function Navbar() {
     dispatch(logoutUser());
     setIsProfileOpen(false);
     navigate('/');
+  };
+
+  // Handle cart open
+  const handleOpenCart = () => {
+    dispatch(openCart());
   };
 
   // Close mobile menu
@@ -143,9 +153,20 @@ export default function Navbar() {
           {/* ===== RIGHT SECTION ===== */}
           <div className="hidden md:flex items-center gap-4">
             
-            {/* Shopping Cart */}
-            <button className="relative p-2.5 rounded-xl hover:bg-[#9E3B3B]/5 transition-colors group">
+            {/* Shopping Cart Button with Badge */}
+            <button 
+              onClick={handleOpenCart}
+              className="relative p-2.5 rounded-xl hover:bg-[#9E3B3B]/5 transition-colors group"
+              aria-label={`Shopping cart with ${cartQuantity} items`}
+            >
               <ShoppingBag size={20} className="text-gray-600 group-hover:text-[#9E3B3B] transition-colors" />
+              
+              {/* Cart Badge - only show if items in cart */}
+              {cartQuantity > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 flex items-center justify-center px-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#9E3B3B] to-[#c45858] rounded-full shadow-md shadow-[#9E3B3B]/30 animate-scaleIn">
+                  {cartQuantity > 99 ? '99+' : cartQuantity}
+                </span>
+              )}
             </button>
 
             {/* Profile Button / Dropdown */}
@@ -285,16 +306,33 @@ export default function Navbar() {
           </div>
 
           {/* ===== MOBILE MENU BUTTON ===== */}
-          <button
-            className="md:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors"
-            onClick={() => setIsMobileOpen(!isMobileOpen)}
-          >
-            {isMobileOpen ? (
-              <X size={24} className="text-gray-700" />
-            ) : (
-              <Menu size={24} className="text-gray-700" />
-            )}
-          </button>
+          <div className="flex md:hidden items-center gap-2">
+            {/* Mobile Cart Button */}
+            <button
+              onClick={handleOpenCart}
+              className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
+              aria-label={`Shopping cart with ${cartQuantity} items`}
+            >
+              <ShoppingBag size={22} className="text-gray-700" />
+              {cartQuantity > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-gradient-to-r from-[#9E3B3B] to-[#c45858] rounded-full">
+                  {cartQuantity > 99 ? '99+' : cartQuantity}
+                </span>
+              )}
+            </button>
+            
+            {/* Mobile Menu Toggle */}
+            <button
+              className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
+              onClick={() => setIsMobileOpen(!isMobileOpen)}
+            >
+              {isMobileOpen ? (
+                <X size={24} className="text-gray-700" />
+              ) : (
+                <Menu size={24} className="text-gray-700" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -390,25 +428,21 @@ export default function Navbar() {
               </NavLink>
             )}
 
-            {/* Cart & Logout */}
-            <div className="flex items-center gap-3 pt-3 mt-3 border-t border-gray-100">
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-50 text-gray-700 font-medium hover:bg-gray-100 transition-colors">
-                <ShoppingBag size={18} />
-                Cart
-              </button>
-              
-              {isLoggedIn && (
+            {/* Logout Button */}
+            {isLoggedIn && (
+              <div className="pt-3 mt-3 border-t border-gray-100">
                 <button 
                   onClick={() => {
                     handleLogout();
                     closeMobile();
                   }}
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 transition-colors"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 transition-colors"
                 >
                   <LogOut size={18} />
+                  Sign Out
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -423,11 +457,18 @@ export default function Navbar() {
           from { opacity: 0; transform: translateY(-10px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes scaleIn {
+          from { transform: scale(0); }
+          to { transform: scale(1); }
+        }
         .animate-fadeIn {
           animation: fadeIn 0.2s ease-out;
         }
         .animate-slideDown {
           animation: slideDown 0.2s ease-out;
+        }
+        .animate-scaleIn {
+          animation: scaleIn 0.2s ease-out;
         }
       `}</style>
     </nav>

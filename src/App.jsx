@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 // User pages
 import Home from './pages/User/Home'
 import Catalogue from './pages/User/Catalogue'
+import ProductDetails from './pages/User/ProductDetails'
 import Recommendation from './pages/User/Recommendation'
 import SkinQuiz from './pages/User/SkinQuiz'
 import Profile from './pages/User/Profile'
@@ -40,6 +41,7 @@ function App() {
         <Route element={<UserRoutes/>}>
           <Route path='/' element={<Home/>} />
           <Route path='/catalogue' element={<Catalogue/>} />
+          <Route path='/products/:id' element={<ProductDetails/>} />
           <Route path='/recommendation' element={<Recommendation/>} />
           <Route path='/skin-quiz' element={<SkinQuiz/>} />
           <Route path='/profile' element={<Profile/>} />

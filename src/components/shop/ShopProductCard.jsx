@@ -12,8 +12,10 @@
 
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { ShoppingBag, Check, Eye, Sparkles, Star } from 'lucide-react';
-import { addToCart, selectIsInCart } from '../../features/cart/cartSlice';
+import { addToCart, openCart } from '../../features/cart/cartSlice';
+import { selectIsInCart } from '../../features/cart/cartSelectors';
 import { useToast } from '../Toast';
 
 export default function ShopProductCard({ product }) {
@@ -36,6 +38,8 @@ export default function ShopProductCard({ product }) {
         category: product.subcategory || ''
       }));
       showToast(`${product.name} added to cart!`, 'success');
+      // Open cart sidebar to show the added item
+      dispatch(openCart());
     }
   };
 
@@ -110,10 +114,13 @@ export default function ShopProductCard({ product }) {
         <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 transition-all duration-300 ${
           isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}>
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-white/95 backdrop-blur-sm text-gray-800 text-sm font-medium rounded-full shadow-lg hover:bg-white transition-colors">
+          <Link 
+            to={`/products/${product.id}`}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white/95 backdrop-blur-sm text-gray-800 text-sm font-medium rounded-full shadow-lg hover:bg-white transition-colors"
+          >
             <Eye className="w-4 h-4" />
-            Quick View
-          </button>
+            View Details
+          </Link>
         </div>
       </div>
 
@@ -129,9 +136,11 @@ export default function ShopProductCard({ product }) {
         )}
 
         {/* Product Name */}
-        <h3 className="font-bold text-gray-900 text-lg mb-2 group-hover:text-[#9E3B3B] transition-colors duration-300 line-clamp-1" style={{ fontFamily: 'Playfair Display, serif' }}>
-          {product.name}
-        </h3>
+        <Link to={`/products/${product.id}`}>
+          <h3 className="font-bold text-gray-900 text-lg mb-2 group-hover:text-[#9E3B3B] transition-colors duration-300 line-clamp-1 cursor-pointer" style={{ fontFamily: 'Playfair Display, serif' }}>
+            {product.name}
+          </h3>
+        </Link>
 
         {/* Description */}
         <p className="text-gray-500 text-sm mb-4 line-clamp-2 leading-relaxed">
