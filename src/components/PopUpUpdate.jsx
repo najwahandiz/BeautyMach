@@ -157,7 +157,7 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
               name="subcategory"
               value={formData.subcategory}
               onChange={handleChange}
-              options={['cleansers', 'moisturizers', 'serums', 'sunscreen']}
+              options={['cleanser', 'moisturizer', 'serum', 'sunscreen']}
             />
 
             {/* Skin Type */}
@@ -166,7 +166,7 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
               name="skinType"
               value={formData.skinType}
               onChange={handleChange}
-              options={['dry', 'normal', 'oily', 'sensitive', 'all types']}
+              options={['dry', 'normal', 'oily', 'sensitive', 'combination', 'all types']}
             />
 
             {/* Price */}

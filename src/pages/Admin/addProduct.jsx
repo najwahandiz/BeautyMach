@@ -117,14 +117,14 @@ export default function AddProduct() {
               <Select
                 label="Category"
                 name="subcategory"
-                options={["cleansers", "moisturizers", "serums", "sunscreen"]}
+                options={["cleanser", "moisturizer", "serum", "sunscreen"]}
                 onChange={handleChange}
               />
 
               <Select
                 label="Skin Type"
                 name="skinType"
-                options={["dry", "normal", "oily", "sensitive", "all types"]}
+                options={["dry", "normal", "oily", "sensitive", "combination", "all types"]}
                 onChange={handleChange}
               />
 

@@ -10,6 +10,7 @@ import ProductDetails from './pages/User/ProductDetails'
 import Recommendation from './pages/User/Recommendation'
 import SkinQuiz from './pages/User/SkinQuiz'
 import Profile from './pages/User/Profile'
+import Checkout from './pages/User/Checkout'
 import UserRoutes from './routes/UserRoutes'
 
 // Admin pages
@@ -45,6 +46,7 @@ function App() {
           <Route path='/recommendation' element={<Recommendation/>} />
           <Route path='/skin-quiz' element={<SkinQuiz/>} />
           <Route path='/profile' element={<Profile/>} />
+          <Route path='/checkout' element={<Checkout/>} />
         </Route>
 
         {/* Admin Routes - protected, requires admin login */}
