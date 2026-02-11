@@ -17,7 +17,9 @@ export default function AddProduct() {
     subcategory: "",
     skinType: "",
     ingredients: "",
+    size:"",
     price: "",
+    concerns:"",
     stock: "",
     minStock: "",
     description: "",
@@ -52,6 +54,7 @@ export default function AddProduct() {
     const newProduct = {
       ...product,
       price: Number(product.price),
+      size: Number(product.size),
       stock: Number(product.stock),
       minStock: Number(product.minStock),
       ingredients: product.ingredients.split(","),
@@ -111,7 +114,7 @@ export default function AddProduct() {
             </div>
 
             {/* Inputs Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
               <Input label="Product Name" name="name" icon={<Package size={16}/>} onChange={handleChange} placeholder="e.g. Vitamin C Glow Serum" />
               
               <Select
@@ -138,6 +141,23 @@ export default function AddProduct() {
                 onChange={handleChange}
                 placeholder="0.00"
               />
+
+              <Input
+                label="Size"
+                name="size"
+                type="number"
+                min="0"
+                onChange={handleChange}
+                placeholder="100"
+              />
+
+              <Select
+                label="Concerns"
+                name="concerns"
+                options={["acne", "breakouts", "redness", "dryness", "sensitivity", "reactivity", "tightness", "excess oil"]}
+                onChange={handleChange}
+              />
+    
 
               <Input 
                 label="Current Stock" 

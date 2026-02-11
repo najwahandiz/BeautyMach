@@ -18,16 +18,17 @@
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Shield, 
-  CheckCircle2, 
-  Package, 
+import {
+  Shield,
+  CheckCircle2,
+  Package,
   Truck,
-  Sparkles,
-  Lock
+  Lock,
 } from 'lucide-react';
 import { selectCartItems, selectCartTotal } from '../../features/cart/cartSelectors';
 import { clearCart } from '../../features/cart/cartSlice';
+import { createOrder } from '../../features/orders/ordersAPI';
+import { sendOrderToN8n } from '../../services/n8nService';
 import { useToast } from '../../components/Toast';
 
 export default function Checkout() {
@@ -55,6 +56,7 @@ export default function Checkout() {
   
   // Order confirmation state
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Handle form input change
   const handleChange = (e) => {
@@ -98,34 +100,66 @@ export default function Checkout() {
     return Object.keys(newErrors).length === 0;
   };
   
-  // Handle order confirmation
-  const handleConfirmOrder = (e) => {
+  // Handle order confirmation: create order in MockAPI → send to n8n → success
+  const handleConfirmOrder = async (e) => {
     e.preventDefault();
-    
-    // Validate form
+
     if (!validateForm()) {
       showToast('Please fill in all required fields', 'error');
       return;
     }
-    
-    // Check if cart is empty
+
     if (cartItems.length === 0) {
       showToast('Your cart is empty', 'error');
       navigate('/catalogue');
       return;
     }
-    
-    // TODO: Here you can add n8n integration later
-    // Example: await sendOrderToN8N({ formData, cartItems, total });
-    
-    // Show success state
-    setIsConfirmed(true);
-    
-    // Clear cart after a short delay
-    setTimeout(() => {
-      dispatch(clearCart());
-      showToast('Order confirmed successfully!', 'success');
-    }, 500);
+
+    setIsSubmitting(true);
+
+    try {
+      const userName = `${formData.firstName} ${formData.lastName}`.trim();
+      const orderPayload = {
+        userName,
+        userEmail: formData.email,
+        items: cartItems.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          imageUrl: item.imageUrl,
+        })),
+        total,
+      };
+
+      const createdOrder = await createOrder(orderPayload);
+      const orderId = createdOrder.id;
+
+      const n8nResult = await sendOrderToN8n({
+        id: orderId,
+        userName,
+        userEmail: formData.email,
+        items: orderPayload.items,
+        total,
+      });
+
+      if (!n8nResult.success) {
+        showToast(n8nResult.error || 'Confirmation email could not be sent. Order was still saved.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
+
+      setIsConfirmed(true);
+      setTimeout(() => {
+        dispatch(clearCart());
+        showToast('Order confirmed successfully!', 'success');
+      }, 500);
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Order could not be placed.';
+      showToast(message, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   // Redirect if cart is empty
@@ -483,11 +517,22 @@ export default function Checkout() {
               
               {/* Confirm Order Button */}
               <button
+                type="button"
                 onClick={handleConfirmOrder}
-                className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#9E3B3B] to-[#b54949] text-white text-lg font-semibold rounded-2xl shadow-xl shadow-[#9E3B3B]/25 hover:shadow-2xl hover:shadow-[#9E3B3B]/30 hover:-translate-y-0.5 transition-all duration-300 active:scale-[0.98]"
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#9E3B3B] to-[#b54949] text-white text-lg font-semibold rounded-2xl shadow-xl shadow-[#9E3B3B]/25 hover:shadow-2xl hover:shadow-[#9E3B3B]/30 hover:-translate-y-0.5 transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
-                <Lock className="w-5 h-5" />
-                Confirm Order
+                {isSubmitting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Processing…
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-5 h-5" />
+                    Confirm Order
+                  </>
+                )}
               </button>
             </div>
           </div>

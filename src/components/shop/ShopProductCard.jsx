@@ -55,10 +55,10 @@ export default function ShopProductCard({ product }) {
   // Get category label
   const getCategoryLabel = (category) => {
     const labels = {
-      cleansers: 'Cleanser',
-      moisturizers: 'Moisturizer',
-      serums: 'Serum',
-      sunscreen: 'Sunscreen'
+      cleanser: 'cleanser',
+      moisturizer: 'moisturizer',
+      serum: 'serum',
+      sunscreen: 'sunscreen'
     };
     return labels[category] || category;
   };

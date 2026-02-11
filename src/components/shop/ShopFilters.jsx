@@ -63,10 +63,10 @@ export default function ShopFilters({
 }) {
   // Category options
   const categories = [
-    { value: 'cleansers', label: 'Cleansers' },
-    { value: 'moisturizers', label: 'Moisturizers' },
-    { value: 'serums', label: 'Serums' },
-    { value: 'sunscreen', label: 'Sunscreen' }
+    { value: 'cleanser', label: 'cleanser' },
+    { value: 'moisturizer', label: 'moisturizer' },
+    { value: 'serum', label: 'serum' },
+    { value: 'sunscreen', label: 'sunscreen' }
   ];
 
   // Skin type options
@@ -75,6 +75,7 @@ export default function ShopFilters({
     { value: 'oily', label: 'Oily Skin' },
     { value: 'normal', label: 'Normal Skin' },
     { value: 'sensitive', label: 'Sensitive Skin' },
+    { value: 'combination', label: 'Combination Skin' },
     { value: 'all types', label: 'All Skin Types' }
   ];
 

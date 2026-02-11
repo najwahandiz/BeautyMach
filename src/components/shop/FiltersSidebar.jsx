@@ -70,9 +70,9 @@ export default function FiltersSidebar({
 }) {
   // Category options - these match the actual subcategory values in database
   const categories = [
-    { value: 'cleansers', label: 'Cleansers' },
-    { value: 'serums', label: 'Serums' },
-    { value: 'moisturizers', label: 'Moisturizers' },
+    { value: 'cleanser', label: 'Cleansers' },
+    { value: 'serum', label: 'Serums' },
+    { value: 'moisturizer', label: 'Moisturizers' },
     { value: 'sunscreen', label: 'Sunscreen' }
   ];
 
