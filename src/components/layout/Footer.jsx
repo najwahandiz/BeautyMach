@@ -34,6 +34,15 @@ export default function Footer() {
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
           
+           {/* Support / Image */}
+           <div className="flex items-center justify-center min-h-[120px]">
+            <img
+              src="/footer.png"
+              alt="Support"
+              className=" max-h-[160px] w-[450px] h-auto object-contain rounded-lg"
+            />
+          </div>
+
           {/* Brand Column */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -51,21 +60,21 @@ export default function Footer() {
             {/* Social Links */}
             <div className="flex items-center gap-3 pt-2">
               <a
-                href="#"
+                href="https://www.instagram.com/beautymarket_ma/ " target="_blank"
                 className="w-9 h-9 rounded-lg bg-[#fffaf5] border border-gray-200 flex items-center justify-center text-gray-600 hover:text-[#9E3B3B] hover:border-[#9E3B3B] transition-all"
                 aria-label="Instagram"
               >
                 <Instagram className="w-4 h-4" />
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/beautymarket_ma/ " target="_blank"
                 className="w-9 h-9 rounded-lg bg-[#fffaf5] border border-gray-200 flex items-center justify-center text-gray-600 hover:text-[#9E3B3B] hover:border-[#9E3B3B] transition-all"
                 aria-label="Facebook"
               >
                 <Facebook className="w-4 h-4" />
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/beautymarket_ma/ " target="_blank"
                 className="w-9 h-9 rounded-lg bg-[#fffaf5] border border-gray-200 flex items-center justify-center text-gray-600 hover:text-[#9E3B3B] hover:border-[#9E3B3B] transition-all"
                 aria-label="Twitter"
               >
@@ -75,8 +84,8 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
+          <div className='px-14'>
+            <h3 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide ">
               Quick Links
             </h3>
             <ul className="space-y-3">
@@ -104,74 +113,11 @@ export default function Footer() {
                   Skin Quiz
                 </Link>
               </li>
-              <li>
-                <Link
-                  to="/recommendation"
-                  className="text-gray-500 hover:text-[#9E3B3B] transition-colors text-sm"
-                >
-                  Recommendations
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/profile"
-                  className="text-gray-500 hover:text-[#9E3B3B] transition-colors text-sm"
-                >
-                  My Profile
-                </Link>
-              </li>
+              
             </ul>
           </div>
 
-          {/* Support */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
-              Support
-            </h3>
-            <ul className="space-y-3">
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-500 hover:text-[#9E3B3B] transition-colors text-sm"
-                >
-                  Contact Us
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-500 hover:text-[#9E3B3B] transition-colors text-sm"
-                >
-                  Shipping Info
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-500 hover:text-[#9E3B3B] transition-colors text-sm"
-                >
-                  Returns
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-500 hover:text-[#9E3B3B] transition-colors text-sm"
-                >
-                  FAQ
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-500 hover:text-[#9E3B3B] transition-colors text-sm"
-                >
-                  Privacy Policy
-                </a>
-              </li>
-            </ul>
-          </div>
-
+        
           {/* Contact Info */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
@@ -205,10 +151,12 @@ export default function Footer() {
               </li>
             </ul>
           </div>
+
+         
         </div>
 
         {/* Trust Badges */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-8 border-t border-gray-100 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 bg-[#fefcfb]/10 px-12 gap-4 py-8 border-t border-gray-100 mb-8">
           <div className="flex flex-col items-center text-center p-4 rounded-xl bg-[#fffaf5]">
             <Shield className="w-6 h-6 text-[#9E3B3B] mb-2" />
             <span className="text-xs font-medium text-gray-700">Secure Payment</span>

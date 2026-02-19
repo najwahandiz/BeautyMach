@@ -183,7 +183,7 @@ export default function ProductDetails() {
   
   // Main product details view
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#fffaf5] to-white pt-20">
+    <div className="min-h-screen bg-[#fefcfb] pt-10">
       {/* Narrower container with more margins */}
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-8 sm:py-12">
         
@@ -199,10 +199,10 @@ export default function ProductDetails() {
         </nav>
         
         {/* Product Content */}
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
           
           {/* Left: Product Image - Clean, no icons */}
-          <div className="relative">
+          <div className="g:sticky lg:top-24 lg:self-start sticky top-20 ">
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-gradient-to-br from-[#fffaf5] to-[#fff5ee] border border-gray-100 shadow-2xl shadow-gray-200/50 group">
               {product.imageUrl ? (
                 <img
@@ -229,7 +229,7 @@ export default function ProductDetails() {
           </div>
           
           {/* Right: Product Info */}
-          <div className="flex flex-col">
+          <div className="flex flex-col  ">
             
             {/* Category Badge */}
             <div className="mb-4">
@@ -241,7 +241,7 @@ export default function ProductDetails() {
             
             {/* Product Name */}
             <h1 
-              className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight"
+              className="text-3xl sm:text-4xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight"
               style={{ fontFamily: 'Playfair Display, serif' }}
             >
               {product.name}
@@ -370,24 +370,7 @@ export default function ProductDetails() {
           </div>
         </div>
         
-        {/* Product Details Section */}
-        <div className="mt-16">
-          {/* Description Card */}
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-lg">
-            <h2 
-              className="text-2xl font-bold text-gray-900 mb-4"
-              style={{ fontFamily: 'Playfair Display, serif' }}
-            >
-              About This Product
-            </h2>
-            <p className="text-gray-600 leading-relaxed">
-              {product.description || 'This premium skincare product is carefully formulated to address your unique skin needs. Made with high-quality ingredients, it delivers visible results while being gentle on your skin.'}
-            </p>
-            <p className="text-gray-600 leading-relaxed mt-4">
-              Our products are dermatologically tested and free from harmful chemicals. Perfect for daily use as part of your skincare routine.
-            </p>
-          </div>
-        </div>
+       
       </div>
     </div>
   );

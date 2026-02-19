@@ -38,7 +38,15 @@ export async function sendOrderToN8n(orderData) {
       timeout: 15000,
     });
 
+    // Preferred: n8n responds with { success: true }
     if (response.data && response.data.success === true) {
+      return { success: true };
+    }
+
+    // Beginner-friendly fallback:
+    // If the workflow runs but doesn't return JSON (common if there's no "Respond to Webhook" node),
+    // treat any 2xx response as success so checkout can complete and cart can clear.
+    if (response.status >= 200 && response.status < 300) {
       return { success: true };
     }
 

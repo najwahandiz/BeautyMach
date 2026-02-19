@@ -9,7 +9,16 @@ import axios from 'axios';
 
 const ORDERS_BASE =
   import.meta.env.VITE_MOCKAPI_ORDERS_URL ||
-  'https://6972993e32c6bacb12c754e5.mockapi.io/orders';
+  'https://6972993e32c6bacb12c754e5.mockapi.io/api/matchbeauty/orders';
+
+/**
+ * Fetch all orders from MockAPI.
+ * @returns {Promise<Array>} List of orders (id, userName, userEmail, items, total, emailSent, createdAt)
+ */
+export async function getOrders() {
+  const { data } = await axios.get(ORDERS_BASE);
+  return data;
+}
 
 /**
  * Create a new order in MockAPI.
