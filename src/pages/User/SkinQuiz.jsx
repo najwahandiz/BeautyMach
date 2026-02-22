@@ -126,15 +126,15 @@ function RecommendedProductCard({ stepKey, stepInfo, recommendation, product, di
   };
 
   return (
-    <div className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-[#9E3B3B]/10 transition-all duration-500">
+    <div className="group bg-white rounded-2xl border-2 border-gray-200 overflow-hidden hover:shadow-xl hover:shadow-[#9E3B3B]/10 transition-all duration-500">
       {/* Step Header */}
-      <div className="bg-gradient-to-r from-[#9E3B3B]/5 to-[#ea7b7b]/5 px-5 py-3 border-b border-gray-100">
+      <div className="bg-gradient-to-r from-[#b35b5b] to-[#b35b5b] px-5 py-3 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] text-white flex items-center justify-center text-sm font-bold shadow-lg">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ea] to-[#ea7b7b] text-white flex items-center justify-center text-sm font-bold shadow-lg">
             {stepInfo.step}
           </div>
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider">{stepInfo.description}</p>
+            <p className="text-xs text-gray-100 uppercase tracking-wider">{stepInfo.description}</p>
             <p className="font-semibold text-gray-800 flex items-center gap-2">
               <span>{stepInfo.icon}</span>
               {stepInfo.label}
@@ -352,7 +352,7 @@ export default function SkinQuiz() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-[#fffaf5] to-white">
+    <div className="min-h-screen mt-8 bg-gradient-to-b from-white via-[#fffaf5] to-white">
       <div className="max-w-3xl mx-auto px-4 py-8 sm:py-12">
 
         {/* ============ INTRO SCREEN ============ */}

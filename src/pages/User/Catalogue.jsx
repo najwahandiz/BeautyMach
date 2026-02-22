@@ -114,21 +114,21 @@ export default function Catalogue() {
   }, [productsData, filters]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-[#fffaf5] to-white">
+    <div className="min-h-screen bg-white mt-8">
       {/* Hero Header - Compact */}
-      <div className="bg-gradient-to-r from-[#fffaf5] via-white to-[#fff5ee] border-b border-gray-100">
+      <div className="bg-gradient-to-r from-[#360d0d]/10 via-white to-[#360d0d]/10 border-b border-gray-100 mb-0 pb-0">
         <div className="max-w-7xl mx-auto px-4 py-10 sm:py-12">
           <div className="text-center">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-[#9E3B3B]/10 mb-4">
               <Sparkles className="w-4 h-4 text-[#9E3B3B]" />
-              <span className="text-sm font-medium text-[#9E3B3B]">Premium Skincare</span>
+              <span className="text-sm font-medium text-gray-700">Premium Skincare</span>
             </div>
             
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Shop
+            <h1 className="text-3xl sm:text-4xl lg:text-4xl font-bold text-[#9E3B3B] mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
+              The SkinCare Collection
             </h1>
-            <p className="text-gray-500 text-base max-w-xl mx-auto">
+            <p className="text-gray-500 text-base max-w-xl mx-auto mb-0 pb-0">
               Discover our curated collection of premium skincare products.
             </p>
           </div>

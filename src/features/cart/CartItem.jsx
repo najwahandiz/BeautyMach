@@ -40,7 +40,7 @@ export default function CartItem({ item }) {
   };
   
   return (
-    <div className="group relative flex gap-4 p-4 bg-white rounded-2xl border border-[#f5e6e0] hover:border-[#ea7b7b]/30 transition-all duration-300 hover:shadow-md">
+    <div className="group relative flex gap-4 p-4 bg-white rounded-2xl border border-[#9E3B3B]/10 hover:border-[#9E3B3B]/20 transition-all duration-300 hover:shadow-md">
       
       {/* ===== PRODUCT IMAGE ===== */}
       <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-[#fff8f5] to-[#ffeee8]">

@@ -15,8 +15,8 @@ import { Search, Package, RotateCcw } from 'lucide-react';
 function ProductSkeleton() {
   return (
     <div className="bg-white rounded-xl overflow-hidden border border-gray-100 animate-pulse">
-      {/* Image skeleton */}
-      <div className="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200" />
+      {/* Image skeleton - matches card aspect */}
+      <div className="aspect-[3/4] min-h-[280px] bg-gradient-to-br from-gray-100 to-gray-200" />
       {/* Content skeleton */}
       <div className="p-4">
         <div className="h-5 bg-gray-200 rounded w-3/4 mb-2" />

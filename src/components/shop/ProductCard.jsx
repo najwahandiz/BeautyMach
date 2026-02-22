@@ -53,14 +53,14 @@ export default function ProductCard({ product }) {
 
   return (
     <div
-      className="group relative bg-white rounded-xl overflow-hidden border border-gray-100 
+      className="group relative h-full w-full bg-white rounded-xl overflow-hidden border border-gray-100 
                  hover:border-[#9E3B3B]/20 transition-all duration-300 
                  hover:shadow-xl hover:shadow-[#9E3B3B]/8 hover:-translate-y-1"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Image Container - Smaller aspect ratio */}
-      <Link to={`/products/${product.id}`} className="block relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#fffaf5] to-[#fff5ee]">
+      {/* Image Container - Taller aspect for better product visibility */}
+      <Link to={`/products/${product.id}`} className="block relative aspect-[3/4] min-h-[280px] overflow-hidden bg-gradient-to-br from-[#fffaf5] to-[#fff5ee]">
         {/* Product Image */}
         {product.imageUrl ? (
           <img

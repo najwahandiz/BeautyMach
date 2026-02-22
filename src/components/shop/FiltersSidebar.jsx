@@ -52,7 +52,7 @@ function CheckboxItem({ label, checked, onChange }) {
 function FilterSection({ title, children }) {
   return (
     <div className="mb-5">
-      <h4 className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wider">
+      <h4 className="text-xs font-semibold text-[#9E3B3B] mb-3 uppercase tracking-wider">
         {title}
       </h4>
       <div className="space-y-0.5">
@@ -109,11 +109,11 @@ export default function FiltersSidebar({
   const hasActiveFilters = filters.categories.length > 0 || filters.skinTypes.length > 0;
 
   return (
-    <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+    <div className="bg-white rounded-xl p-5 border border-[#9E3B3B]/10 shadow-lg">
       {/* Header */}
       <div className="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="w-4 h-4 text-[#9E3B3B]" />
+          <SlidersHorizontal className="w-8 h-4 text-[#9E3B3B]" />
           <h3 className="font-semibold text-gray-900">Filters</h3>
         </div>
         
@@ -130,7 +130,7 @@ export default function FiltersSidebar({
       </div>
 
       {/* Category Filter */}
-      <FilterSection title="Category">
+      <FilterSection title="Category" className="text-[#9E3B3B]">
         {categories.map(category => (
           <CheckboxItem
             key={category.value}
@@ -142,7 +142,7 @@ export default function FiltersSidebar({
       </FilterSection>
 
       {/* Skin Type Filter */}
-      <FilterSection title="Skin Type">
+      <FilterSection title="Skin Type" className="text-[#9E3B3B]">
         {skinTypes.map(skinType => (
           <CheckboxItem
             key={skinType.value}

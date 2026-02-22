@@ -14,7 +14,7 @@ export default function SearchBar({ value, onChange, placeholder = "Search produ
   return (
     <div className="relative flex-1 max-w-md">
       {/* Search Icon */}
-      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9E3B3B]" />
       
       {/* Search Input */}
       <input
@@ -22,8 +22,8 @@ export default function SearchBar({ value, onChange, placeholder = "Search produ
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-12 pr-10 py-3 rounded-xl border-2 border-gray-200 bg-white 
-                   focus:border-[#9E3B3B] focus:ring-4 focus:ring-[#9E3B3B]/10 
+        className="w-full pl-12 pr-10 py-3 rounded-xl border border-gray-200 bg-[#9E3B8B]/10 text-[#9E3B3B]
+                   focus:border-[#9E3B3B] focus:ring-4 focus:ring-gray-100 
                    outline-none transition-all duration-300 text-sm text-gray-700
                    placeholder:text-gray-400"
       />

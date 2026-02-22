@@ -163,7 +163,7 @@ function LoginForm({ onLogin }) {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <div className="bg-white rounded-3xl shadow-2xl shadow-[#9E3B3B]/10 border border-gray-100 p-8 sm:p-10">
+        <div className="bg-white mt-5 rounded-3xl shadow-2xl shadow-[#9E3B3B]/10 border border-gray-100 p-8 sm:p-10">
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="inline-flex p-4 bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] rounded-2xl mb-5 shadow-xl shadow-[#9E3B3B]/30 rotate-3">
@@ -261,7 +261,7 @@ export default function Profile() {
   const skinConfig = skinTypeConfig[quizResult?.skinType] || skinTypeConfig.normal;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-[#fffaf5] to-white">
+    <div className="min-h-screen mt-10 bg-gradient-to-b from-white via-[#fffaf5] to-white">
       <div className="max-w-5xl mx-auto px-4 py-8 sm:py-12">
         
         {/* Profile Header */}

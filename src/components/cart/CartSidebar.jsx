@@ -161,7 +161,7 @@ export default function CartSidebar() {
               {/* Clear Cart Button */}
               <button
                 onClick={handleClearCart}
-                className="w-full py-2.5 text-sm text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200 mt-4"
+                className="w-full py-2.5 text-sm text-gray-500 hover:text-gray-600 hover:bg-gray-200 rounded-xl transition-all duration-200 mt-4"
               >
                 Clear Cart
               </button>
@@ -197,7 +197,7 @@ export default function CartSidebar() {
             {/* Continue Shopping Link */}
             <button
               onClick={handleContinueShopping}
-              className="w-full py-3 text-[#9E3B3B] font-medium hover:bg-[#9E3B3B]/5 rounded-xl transition-all duration-200"
+              className="w-full py-3 text-gray-700 font-medium bg-gray-200 hover:bg-gray-300 hover:text-gray-800 rounded-xl transition-all duration-200"
             >
               Continue Shopping
             </button>

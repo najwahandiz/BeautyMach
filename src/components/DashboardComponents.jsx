@@ -87,8 +87,8 @@ export function ProductsTable({ products }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
-        <thead className="bg-gray-50/80">
-          <tr className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <thead className="bg-[#9E3B3B] text-white">
+          <tr className="text-xs font-semibold uppercase tracking-wider">
             <th className="px-6 py-4 text-left">Product</th>
             <th className="px-6 py-4 text-left">Category</th>
             <th className="px-6 py-4 text-left">Price</th>

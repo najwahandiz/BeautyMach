@@ -292,24 +292,20 @@ export default function Checkout() {
   
   // Main checkout view
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#fffaf5] to-white pt-20">
+    <div className="min-h-screen bg-[#fffaf5]/10 pt-10 ">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-12 py-8 sm:py-12">
         
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-[#9E3B3B]/10 mb-4">
-            <Lock className="w-4 h-4 text-[#9E3B3B]" />
-            <span className="text-sm font-medium text-[#9E3B3B]">Secure Checkout</span>
-          </div>
+          
           <h1 
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-3"
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#9E3B3B] mb-3"
             style={{ fontFamily: 'Playfair Display, serif' }}
           >
-            Secure Checkout
+            Cash on Delivery
           </h1>
           <p className="text-gray-500 text-base max-w-xl mx-auto">
-            Your transaction is secure and encrypted. We never store your payment information.
-          </p>
+             Experience total peace of mind. Your order is delivered first, and payment is made only when it reaches your hands.          </p>
         </div>
         
         {/* Two-Column Layout */}
@@ -317,11 +313,11 @@ export default function Checkout() {
           
           {/* LEFT: Shipping Information Form */}
           <div className="order-2 lg:order-1">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-lg">
+            <div className="bg-white rounded-4xl p-6 sm:p-8 border-1 border-gray-300 shadow-lg">
               <div className="flex items-center gap-2 mb-6">
                 <Truck className="w-5 h-5 text-[#9E3B3B]" />
                 <h2 
-                  className="text-2xl font-bold text-gray-900"
+                  className="text-2xl font-bold text-"
                   style={{ fontFamily: 'Playfair Display, serif' }}
                 >
                   Shipping Information
@@ -331,7 +327,7 @@ export default function Checkout() {
               <form onSubmit={handleConfirmOrder} className="space-y-5">
                 {/* First Name */}
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label htmlFor="firstName" className="block text-sm font-semibold text-gray-600 mb-2">
                     First Name <span className="text-[#9E3B3B]">*</span>
                   </label>
                   <input
@@ -442,7 +438,7 @@ export default function Checkout() {
           
           {/* RIGHT: Order Summary */}
           <div className="order-1 lg:order-2">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-lg sticky top-24">
+            <div className="bg-white rounded-4xl p-6 sm:p-8 border border-gray-300 shadow-lg sticky top-24">
               <div className="flex items-center gap-2 mb-6">
                 <Package className="w-5 h-5 text-[#9E3B3B]" />
                 <h2 
@@ -506,14 +502,8 @@ export default function Checkout() {
                   <span className="text-[#9E3B3B]">${total.toFixed(2)}</span>
                 </div>
               </div>
-              
-              {/* Security Badge */}
-              <div className="flex items-center gap-2 p-3 bg-[#fffaf5] rounded-xl mb-6">
-                <Shield className="w-5 h-5 text-[#9E3B3B]" />
-                <span className="text-xs text-gray-600">
-                  Your payment information is secure and encrypted
-                </span>
-              </div>
+                  
+             
               
               {/* Confirm Order Button */}
               <button

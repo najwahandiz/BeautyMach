@@ -141,8 +141,8 @@ export default function ManageProducts() {
             <table className="w-full text-left">
               
               {/* Table Header */}
-              <thead className="bg-[#FAF9F6] border-b border-gray-100">
-                <tr className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <thead className="bg-[#9E3B3B] border-b border-gray-100">
+                <tr className="text-xs font-semibold text-white uppercase tracking-wider">
                   <th className="px-6 py-4">Product</th>
                   <th className="px-6 py-4">SKU/ID</th>
                   <th className="px-6 py-4">Status</th>
@@ -157,7 +157,7 @@ export default function ManageProducts() {
                   const status = getStockStatus(product.stock || 0);
                   
                   return (
-                    <tr key={product.id} className="hover:bg-orange-50/30 transition-colors">
+                    <tr key={product.id} className="hover:bg-[#9E3B3B]/10 transition-colors">
                       
                       {/* Product Name & Category */}
                       <td className="px-6 py-4">
@@ -201,7 +201,7 @@ export default function ManageProducts() {
                       <td className="px-6 py-4">
                         <div className="flex justify-center gap-2">
                           <button className="p-2 hover:bg-[#9E3B3B]/10 rounded-lg cursor-pointer transition-colors">
-                            <Eye size={18} color="gray" />
+                            <Link to={`/products/${product.id}`}><Eye size={18} color="gray" /></Link>
                           </button>
                           <button 
                             onClick={() => handleUpdateClick(product)}

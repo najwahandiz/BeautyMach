@@ -20,13 +20,13 @@ export default function SortSelect({ value, onChange }) {
   return (
     <div className="relative">
       {/* Sort Icon */}
-      <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+      <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9E3B3B] pointer-events-none" />
       
       {/* Select Dropdown */}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="appearance-none pl-11 pr-10 py-3 rounded-xl border-2 border-gray-200 bg-white
+        className="appearance-none pl-11 pr-10 py-3 rounded-xl border-2 border-gray-200 bg-[#9E3B8B]/10
                    focus:border-[#9E3B3B] focus:ring-4 focus:ring-[#9E3B3B]/10
                    outline-none transition-all duration-300 text-sm text-gray-700
                    cursor-pointer min-w-[200px]"

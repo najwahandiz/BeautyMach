@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProducts } from '../../features/products/productsThunks';
-import { Package, ShoppingCart, DollarSign, AlertTriangle, Boxes, Tag } from 'lucide-react';
+import { getOrders } from '../../features/orders/ordersAPI';
+import { DollarSign, ShoppingCart, Boxes, AlertTriangle } from 'lucide-react';
 import { 
   StatCard, 
   ProductsTable, 
@@ -13,44 +14,51 @@ import {
 export default function Dashboard() {
   const dispatch = useDispatch();
   const { productsData, loading } = useSelector((state) => state.products);
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
 
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
 
-  // === Calculate Statistics ===
-  const totalProducts = productsData?.length || 0;
-  const soldProducts = productsData?.filter(p => (p.quantityVendu || 0) > 0) || [];
-  const totalQuantitySold = productsData?.reduce((sum, p) => sum + (p.quantityVendu || 0), 0) || 0;
-  const totalRevenue = productsData?.reduce((sum, p) => sum + ((p.price || 0) * (p.quantityVendu || 0)), 0) || 0;
-  const totalStock = productsData?.reduce((sum, p) => sum + (p.stock || 0), 0) || 0;
-  const avgPrice = totalProducts > 0 ? productsData.reduce((sum, p) => sum + (p.price || 0), 0) / totalProducts : 0;
+  useEffect(() => {
+    let cancelled = false;
+    setOrdersLoading(true);
+    getOrders()
+      .then((data) => { if (!cancelled) setOrders(Array.isArray(data) ? data : []); })
+      .catch(() => { if (!cancelled) setOrders([]); })
+      .finally(() => { if (!cancelled) setOrdersLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
-  // Low stock & out of stock
+  // === From orders (real data) ===
+  const totalSales = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  const totalOrders = orders.length;
+
+  // === From products (real data) ===
+  const totalStock = productsData?.reduce((sum, p) => sum + (p.stock || 0), 0) || 0;
   const lowStockProducts = productsData?.filter(p => (p.stock || 0) < (p.minStock || 10) && (p.stock || 0) > 0) || [];
   const outOfStockCount = productsData?.filter(p => (p.stock || 0) === 0).length || 0;
 
-  // Top selling products
+  // Top selling products (from products data)
   const topSellingProducts = [...(productsData || [])]
     .filter(p => (p.quantityVendu || 0) > 80)
     .sort((a, b) => (b.quantityVendu || 0) - (a.quantityVendu || 0))
     .slice(0, 10);
 
-  // === Stats Cards Config ===
+  // === 4 Stats Cards: Total Sales, Total Orders, Total Stock, Low Stock Alert ===
   const stats = [
-    { title: 'Total Products', value: totalProducts, icon: Package, bgColor: 'bg-blue-50', iconColor: 'text-blue-600' },
-    { title: 'Products Sold', value: soldProducts.length, subtitle: `${totalQuantitySold} units`, icon: ShoppingCart, bgColor: 'bg-green-50', iconColor: 'text-green-600' },
-    { title: 'Total Revenue', value: `$${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, icon: DollarSign, bgColor: 'bg-[#9E3B3B]/10', iconColor: 'text-[#9E3B3B]' },
+    { title: 'Total Sales', value: `$${totalSales.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, icon: DollarSign, bgColor: 'bg-[#9E3B3B]/10', iconColor: 'text-[#9E3B3B]' },
+    { title: 'Total Orders', value: totalOrders.toLocaleString(), icon: ShoppingCart, bgColor: 'bg-green-50', iconColor: 'text-green-600' },
     { title: 'Total Stock', value: totalStock.toLocaleString(), subtitle: 'units available', icon: Boxes, bgColor: 'bg-purple-50', iconColor: 'text-purple-600' },
-    { title: 'Low Stock Alert', value: lowStockProducts.length, subtitle: `${outOfStockCount} out of stock`, icon: AlertTriangle, bgColor: 'bg-amber-50', iconColor: 'text-amber-600' },
-    { title: 'Average Price', value: `$${avgPrice.toFixed(2)}`, icon: Tag, bgColor: 'bg-teal-50', iconColor: 'text-teal-600' }
+    { title: 'Low Stock Alert', value: lowStockProducts.length, subtitle: outOfStockCount > 0 ? `${outOfStockCount} out of stock` : null, icon: AlertTriangle, bgColor: 'bg-amber-50', iconColor: 'text-amber-600' }
   ];
 
-  // Loading state
-  if (loading) {
+  // Loading state (products required for main content)
+  if (loading || ordersLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9E3B3B]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9E3B3B]">Loading ...</div>
       </div>
     );
   }
@@ -58,13 +66,28 @@ export default function Dashboard() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#9E3B3B]">Dashboard</h1>
         <p className="text-gray-500 mt-1">Overview of your store performance</p>
+        </div>
+          {/* Admin info */}
+          <div className="mt-1 px-4 py-3 bg-[#9E3B3B]/5 rounded-2xl">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] flex items-center justify-center text-white font-bold text-sm">
+                A
+              </div>
+              <div>
+                <p className="text-sm font-medium text-black">Admin</p>
+                <p className="text-xs text-black">Administrator</p>
+              </div>
+            </div>
+          </div>
+
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-8">
+      {/* Stats Grid - 4 cards in one line */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 mb-8">
         {stats.map((stat, i) => <StatCard key={i} {...stat} />)}
       </div>
 
