@@ -10,6 +10,9 @@
 // The key we use to store user data in localStorage
 const STORAGE_KEY = 'beautymatch_user';
 
+// Key for quiz/recommendations completed before profile creation (anonymous)
+const ANONYMOUS_QUIZ_KEY = 'beautymatch_anonymous_quiz';
+
 /**
  * Save user data to localStorage
  * 
@@ -72,7 +75,7 @@ export function clearUser() {
 
 /**
  * Update specific fields in user data
- * 
+ *
  * @param {Object} updates - The fields to update
  * @returns {Object} The updated user data
  */
@@ -80,17 +83,62 @@ export function updateUser(updates) {
   try {
     // Load existing data
     const existingData = loadUser() || {};
-    
+
     // Merge with updates
     const updatedData = { ...existingData, ...updates };
-    
+
     // Save back
     saveUser(updatedData);
-    
+
     return updatedData;
   } catch (error) {
     console.error('❌ Error updating user data:', error);
     throw error;
+  }
+}
+
+/**
+ * Save anonymous quiz result and recommendations (user not logged in yet).
+ * Used so that when the user creates a profile later, we can attach this data.
+ *
+ * @param {Object} data - { quizResult, recommendations }
+ */
+export function saveAnonymousQuiz(data) {
+  try {
+    localStorage.setItem(ANONYMOUS_QUIZ_KEY, JSON.stringify(data));
+    return data;
+  } catch (error) {
+    console.error('❌ Error saving anonymous quiz:', error);
+    throw error;
+  }
+}
+
+/**
+ * Load anonymous quiz data (if user took quiz before creating profile).
+ *
+ * @returns {Object|null} { quizResult, recommendations } or null
+ */
+export function loadAnonymousQuiz() {
+  try {
+    const raw = localStorage.getItem(ANONYMOUS_QUIZ_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (error) {
+    console.error('❌ Error loading anonymous quiz:', error);
+    return null;
+  }
+}
+
+/**
+ * Clear anonymous quiz data (after merging into user profile).
+ */
+export function clearAnonymousQuiz() {
+  try {
+    localStorage.removeItem(ANONYMOUS_QUIZ_KEY);
+    return true;
+  } catch (error) {
+    console.error('❌ Error clearing anonymous quiz:', error);
+    return false;
   }
 }
 

@@ -53,9 +53,9 @@ export default function ProductCard({ product }) {
 
   return (
     <div
-      className="group relative h-full w-full bg-white rounded-xl overflow-hidden border border-gray-100 
-                 hover:border-[#9E3B3B]/20 transition-all duration-300 
-                 hover:shadow-xl hover:shadow-[#9E3B3B]/8 hover:-translate-y-1"
+      className="group relative h-full w-full bg-white rounded-xl overflow-hidden border-2 border-gray-200 
+                 hover:border-[#e3a8a8] transition-all duration-300 
+                 hover:shadow-3xl hover:shadow-[#9E3B3B]/8 hover:-translate-y-1"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -114,7 +114,7 @@ export default function ProductCard({ product }) {
             disabled={isInCart}
             className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all duration-300 ${
               isInCart
-                ? 'bg-emerald-50 text-emerald-600 cursor-default'
+                ? 'bg-gray-200 text-emerald-600 cursor-default'
                 : 'bg-gradient-to-r from-[#9E3B3B] to-[#b54949] text-white hover:shadow-md hover:shadow-[#9E3B3B]/25 active:scale-95'
             }`}
           >

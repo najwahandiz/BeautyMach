@@ -1,21 +1,21 @@
 /**
  * Navbar.jsx
- * 
- * Modern, responsive navigation bar for BeautyMatch.
- * Features: Profile dropdown, shopping cart with badge, skin quiz link
- * Admin Dashboard link only shows if admin is logged in.
+ *
+ * User profile (Redux) and admin session are separate:
+ * - Profile / Sign in = user state (Redux, beautymatch_user).
+ * - Admin Dashboard / Admin Login = admin session only (adminAuth); not tied to user profile.
  */
 
 import { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { 
-  User, 
-  ShoppingBag, 
-  Sparkles, 
-  Menu, 
-  X, 
-  LogOut, 
+import {
+  User,
+  ShoppingBag,
+  Sparkles,
+  Menu,
+  X,
+  LogOut,
   Heart,
   ChevronDown,
   LayoutDashboard
@@ -24,20 +24,16 @@ import { selectIsLoggedIn, selectUserProfile } from '../../features/user/userSli
 import { logoutUser } from '../../features/user/userThunks';
 import { openCart } from '../../features/cart/cartSlice';
 import { selectCartQuantity } from '../../features/cart/cartSelectors';
+import { isAdminLoggedIn } from '../../utils/adminAuth';
 
 export default function Navbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  // Get user state from Redux (for user profile)
+
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const profile = useSelector(selectUserProfile);
-  
-  // Get cart quantity from Redux
   const cartQuantity = useSelector(selectCartQuantity);
-  
-  // Check if admin is logged in (from localStorage)
-  // This is separate from user login!
+
   const [isAdmin, setIsAdmin] = useState(false);
   
   // Mobile menu state
@@ -48,19 +44,10 @@ export default function Navbar() {
   // Ref for dropdown to detect outside clicks
   const dropdownRef = useRef(null);
 
-  // Check admin status on mount and when localStorage changes
   useEffect(() => {
-    const checkAdmin = () => {
-      const adminStatus = localStorage.getItem('isAdmin') === 'true';
-      setIsAdmin(adminStatus);
-    };
-    
-    // Check on mount
+    const checkAdmin = () => setIsAdmin(isAdminLoggedIn());
     checkAdmin();
-    
-    // Listen for storage changes (in case admin logs in/out in another tab)
     window.addEventListener('storage', checkAdmin);
-    
     return () => window.removeEventListener('storage', checkAdmin);
   }, []);
 
@@ -233,14 +220,7 @@ export default function Navbar() {
                           <span>My Skin Analysis</span>
                         </Link>
                         
-                        <Link
-                          to="/catalogue"
-                          onClick={() => setIsProfileOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-[#9E3B3B]/5 hover:text-[#9E3B3B] transition-colors"
-                        >
-                          <Heart size={18} />
-                          <span>Wishlist</span>
-                        </Link>
+                        
                       </div>
                       
                       {/* Admin Dashboard Link - ONLY if admin is logged in */}

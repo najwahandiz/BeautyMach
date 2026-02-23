@@ -1,25 +1,17 @@
 /**
  * AdminRoutes.jsx
- * 
- * Protected admin routes wrapper.
- * Checks if user is logged in as admin before allowing access.
- * 
- * How it works:
- * 1. Check localStorage for 'isAdmin' key
- * 2. If 'isAdmin' is 'true' → show admin dashboard
- * 3. If not → redirect to admin login page
+ *
+ * Protected admin routes. Not related to user profile.
+ * - Access only if admin has logged in with correct username/password.
+ * - Uses admin session only; never checks user profile or Redux user state.
  */
 
 import { Navigate, Outlet } from "react-router-dom";
 import AdminSidebar from '../components/layout/AdminSidebar';
+import { isAdminLoggedIn } from '../utils/adminAuth';
 
 export default function AdminRoutes() {
-  // Check if admin is logged in
-  // localStorage stores strings, so we compare with "true"
-  const isAdmin = localStorage.getItem('isAdmin') === 'true';
-
-  // If NOT admin, redirect to login page
-  if (!isAdmin) {
+  if (!isAdminLoggedIn()) {
     return <Navigate to="/admin-login" replace />;
   }
 

@@ -1,40 +1,33 @@
 /**
  * AdminSidebar.jsx
- * 
- * Admin dashboard sidebar with navigation and logout.
- * Includes responsive mobile menu.
+ *
+ * Admin dashboard sidebar. Admin auth is separate from user profile;
+ * logout here only clears admin session, not user data.
  */
 
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Eye, 
-  Menu, 
-  X, 
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Eye,
+  Menu,
+  X,
   LogOut,
   Shield
 } from "lucide-react";
+import { clearAdminSession } from '../../utils/adminAuth';
 
 export default function AdminSidebar() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Toggle sidebar on mobile
   const toggleSidebar = () => setIsOpen(!isOpen);
-  
-  // Close sidebar when clicking a link (mobile)
   const closeSidebar = () => setIsOpen(false);
 
-  /**
-   * Handle admin logout
-   * - Remove 'isAdmin' from localStorage
-   * - Redirect to home page
-   */
   const handleLogout = () => {
-    localStorage.removeItem('isAdmin');
+    clearAdminSession();
     navigate('/');
   };
 

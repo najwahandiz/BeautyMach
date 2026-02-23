@@ -1,47 +1,35 @@
 /**
  * AdminLogin.jsx
- * 
- * Admin login page with hardcoded credentials.
- * Simple authentication using localStorage.
- * 
- * Credentials:
- * - Username: admin
- * - Password: admin123
+ *
+ * Admin-only login. Not related to user profile.
+ * - Dashboard is accessible only after entering correct admin username/password.
+ * - Simple client-side auth (no backend). Uses its own session storage.
  */
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Lock, User, Eye, EyeOff, AlertCircle, ArrowLeft } from 'lucide-react';
+import { validateAdminCredentials, setAdminSession, ADMIN_CREDENTIALS } from '../../utils/adminAuth';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  
-  // Form state
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Hardcoded admin credentials
-  const ADMIN_USERNAME = 'admin';
-  const ADMIN_PASSWORD = 'admin123';
-
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // Simulate a small delay for better UX
     setTimeout(() => {
-      // Check credentials
-      if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-        // ✅ Correct credentials - save to localStorage and redirect
-        localStorage.setItem('isAdmin', 'true');
+      if (validateAdminCredentials(username, password)) {
+        setAdminSession();
         navigate('/Dashboard');
       } else {
-        // ❌ Wrong credentials - show error
         setError('Incorrect username or password');
       }
       setIsLoading(false);
@@ -158,7 +146,7 @@ export default function AdminLogin() {
           <div className="px-8 pb-8">
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
               <p className="text-amber-800 text-sm text-center">
-                <strong>Demo credentials:</strong> admin / admin123
+                <strong>Demo credentials:</strong> {ADMIN_CREDENTIALS.username} / {ADMIN_CREDENTIALS.password}
               </p>
             </div>
           </div>

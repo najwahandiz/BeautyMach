@@ -1,14 +1,15 @@
 /**
  * Profile.jsx
- * 
- * User profile page - displays and manages user information.
- * Shows: profile info, quiz results, and AI recommendations.
- * 
+ *
+ * User profile page — separate from admin login.
+ * - User login here (name/email) is for profile, quiz, recommendations only.
+ * - Admin dashboard uses its own login at /admin-login and is not related to this profile.
+ *
  * KEY FEATURES:
  * - Modern, luxurious, minimal design
  * - Saved skin type, concerns, age range
  * - AI recommendations with Add to Cart
- * - Data persisted via Redux + localStorage
+ * - Data persisted via Redux + localStorage (beautymatch_user)
  */
 
 import { useState, useEffect } from 'react';

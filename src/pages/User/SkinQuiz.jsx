@@ -28,6 +28,7 @@ import { selectIsInCart } from '../../features/cart/cartSelectors';
 import { ProgressBar, QuestionCard, QuizButton } from '../../components/quiz/QuizComponents';
 import { analyzeAnswers } from '../../utils/analyzeQuizResult';
 import { getRecommendations, getAIProvider } from '../../services/aiRecommendation';
+import { saveAnonymousQuiz } from '../../features/user/userAPI';
 import { 
   Sparkles, ArrowLeft, ArrowRight, RotateCcw, Loader2, 
   ShoppingBag, User, Check, ChevronRight, Star, Droplets 
@@ -301,8 +302,11 @@ export default function SkinQuiz() {
         // Save recommendations to user profile (if logged in)
         if (isLoggedIn) {
           dispatch(saveRecommendationsThunk(recs));
+        } else {
+          // User took quiz before creating profile: persist so we can attach to profile on signup
+          saveAnonymousQuiz({ quizResult: result, recommendations: recs });
         }
-        
+
         // Show results
         setViewMode('results');
       } catch (err) {

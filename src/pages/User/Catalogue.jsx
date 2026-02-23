@@ -116,7 +116,7 @@ export default function Catalogue() {
   return (
     <div className="min-h-screen bg-white mt-8">
       {/* Hero Header - Compact */}
-      <div className="bg-gradient-to-r from-[#360d0d]/10 via-white to-[#360d0d]/10 border-b border-gray-100 mb-0 pb-0">
+      <div className="bg-[#360d0d]/10 border-b border-gray-100 mb-0 pb-0">
         <div className="max-w-7xl mx-auto px-4 py-10 sm:py-12">
           <div className="text-center">
             {/* Badge */}

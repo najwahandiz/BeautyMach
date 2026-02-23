@@ -10,22 +10,37 @@
  */
 
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { saveUser, loadUser, clearUser, updateUser } from './userAPI';
+import { saveUser, loadUser, clearUser, updateUser, loadAnonymousQuiz, clearAnonymousQuiz } from './userAPI';
 
 /**
  * Login User (fake login - no real authentication)
- * 
+ *
  * This simulates a login by saving user data to localStorage.
- * In a real app, you would send credentials to a server.
- * 
+ * If the user took the quiz before creating a profile, quiz result and
+ * recommendations are merged from Redux state or anonymous storage.
+ *
  * Usage:
  * dispatch(loginUser({ name: 'John', email: 'john@example.com' }))
  */
 export const loginUser = createAsyncThunk(
   'user/login',
-  async (profileData, { rejectWithValue }) => {
+  async (profileData, { getState, rejectWithValue }) => {
     try {
-      // Create user data object
+      // Prefer quiz data from current session (Redux), then from anonymous storage
+      const state = getState();
+      const fromState = state?.user?.quizResult != null || state?.user?.recommendations != null
+        ? { quizResult: state.user.quizResult || null, recommendations: state.user.recommendations || null }
+        : null;
+      const fromAnonymous = fromState ? null : loadAnonymousQuiz();
+
+      const quizResult = fromState?.quizResult ?? fromAnonymous?.quizResult ?? null;
+      const recommendations = fromState?.recommendations ?? fromAnonymous?.recommendations ?? null;
+
+      if (fromAnonymous && (quizResult || recommendations)) {
+        clearAnonymousQuiz();
+      }
+
+      // Create user data object (include quiz data if user took quiz before profile)
       const userData = {
         profile: {
           name: profileData.name,
@@ -33,8 +48,8 @@ export const loginUser = createAsyncThunk(
           ageRange: profileData.ageRange || null,
           createdAt: new Date().toISOString()
         },
-        quizResult: null,
-        recommendations: null
+        quizResult,
+        recommendations
       };
 
       // Save to localStorage (simulates saving to database)
