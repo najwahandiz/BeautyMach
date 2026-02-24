@@ -1,77 +1,60 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateProduit } from '../features/products/productsThunks';
+import { updateProduct } from '../features/products/productsThunks';
 import { X, Upload, Package, DollarSign } from 'lucide-react';
 import { useToast } from './Toast';
 import axios from 'axios';
+
+const emptyForm = {
+  name: '', subcategory: '', skinType: '', ingredients: '', price: '', stock: '', minStock: '', description: '', imageUrl: '',
+};
+
+function productToForm(p) {
+  if (!p) return emptyForm;
+  return {
+    name: p.name || '',
+    subcategory: p.subcategory || '',
+    skinType: p.skinType || '',
+    ingredients: Array.isArray(p.ingredients) ? p.ingredients.join(', ') : p.ingredients || '',
+    price: p.price ?? '',
+    stock: p.stock ?? '',
+    minStock: p.minStock ?? '',
+    description: p.description || '',
+    imageUrl: p.imageUrl || '',
+  };
+}
 
 export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.products);
   const { showToast } = useToast();
+  const [formData, setFormData] = useState(emptyForm);
 
-  // Form state - initialized with empty values
-  const [formData, setFormData] = useState({
-    name: '',
-    subcategory: '',
-    skinType: '',
-    ingredients: '',
-    price: '',
-    stock: '',
-    minStock: '',
-    description: '',
-    imageUrl: '',
-  });
-
-  // Update form when productToUpdate changes
   useEffect(() => {
-    if (productToUpdate) {
-      setFormData({
-        name: productToUpdate.name || '',
-        subcategory: productToUpdate.subcategory || '',
-        skinType: productToUpdate.skinType || '',
-        ingredients: Array.isArray(productToUpdate.ingredients) 
-          ? productToUpdate.ingredients.join(', ') 
-          : productToUpdate.ingredients || '',
-        price: productToUpdate.price || '',
-        stock: productToUpdate.stock || '',
-        minStock: productToUpdate.minStock || '',
-        description: productToUpdate.description || '',
-        imageUrl: productToUpdate.imageUrl || '',
-      });
-    }
-  }, [productToUpdate]);
+    if (isOpen && productToUpdate) setFormData(productToForm(productToUpdate));
+  }, [isOpen, productToUpdate]);
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle image upload to Cloudinary
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const data = new FormData();
     data.append('file', file);
     data.append('upload_preset', 'skinCareProducts');
-
     try {
-      const res = await axios.post(
-        'https://api.cloudinary.com/v1_1/dgqoop9qz/image/upload',
-        data
-      );
-      setFormData({ ...formData, imageUrl: res.data.secure_url });
-    } catch (error) {
-      console.log('Image upload error', error);
+      const res = await axios.post('https://api.cloudinary.com/v1_1/dgqoop9qz/image/upload', data);
+      setFormData((prev) => ({ ...prev, imageUrl: res.data.secure_url }));
+    } catch (err) {
+      console.log('Image upload error', err);
     }
   };
 
-  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     const updatedProduct = {
       id: productToUpdate.id,
       ...formData,
@@ -80,20 +63,16 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
       minStock: Number(formData.minStock),
       ingredients: formData.ingredients.split(',').map((i) => i.trim()),
     };
-
-    await dispatch(updateProduit(updatedProduct));
+    await dispatch(updateProduct(updatedProduct));
     onClose();
     showToast('Product updated successfully!', 'success');
   };
 
-  // Don't render if not open
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden">
-        
-        {/* Header */}
         <div className="bg-[#9E3B3B] p-5 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-white">Update Product</h2>
@@ -106,11 +85,7 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
             <X size={22} className="text-white" />
           </button>
         </div>
-
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-          
-          {/* Image Upload */}
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Product Image
@@ -137,11 +112,7 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
               )}
             </div>
           </div>
-
-          {/* Input Fields Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            {/* Product Name */}
             <Input
               label="Product Name"
               name="name"
@@ -150,8 +121,6 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
               placeholder="e.g. Vitamin C Serum"
               icon={<Package size={16} />}
             />
-
-            {/* Category */}
             <Select
               label="Category"
               name="subcategory"
@@ -159,8 +128,6 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
               onChange={handleChange}
               options={['cleanser', 'moisturizer', 'serum', 'sunscreen']}
             />
-
-            {/* Skin Type */}
             <Select
               label="Skin Type"
               name="skinType"
@@ -168,8 +135,6 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
               onChange={handleChange}
               options={['dry', 'normal', 'oily', 'sensitive', 'combination', 'all types']}
             />
-
-            {/* Price */}
             <Input
               label="Price ($)"
               name="price"
@@ -181,8 +146,6 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
               placeholder="0.00"
               icon={<DollarSign size={16} />}
             />
-
-            {/* Stock */}
             <Input
               label="Current Stock"
               name="stock"
@@ -192,8 +155,6 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
               onChange={handleChange}
               placeholder="100"
             />
-
-            {/* Min Stock */}
             <Input
               label="Min Stock Warning"
               name="minStock"
@@ -203,8 +164,6 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
               onChange={handleChange}
               placeholder="10"
             />
-
-            {/* Ingredients - Full Width */}
             <div className="md:col-span-2">
               <Input
                 label="Ingredients (comma separated)"
@@ -214,8 +173,6 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
                 placeholder="Aqua, Glycerin, Niacinamide..."
               />
             </div>
-
-            {/* Description - Full Width */}
             <div className="md:col-span-2">
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Description
@@ -230,8 +187,6 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
               />
             </div>
           </div>
-
-          {/* Action Buttons */}
           <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
             <button
               type="button"
@@ -263,7 +218,6 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
   );
 }
 
-/* Reusable Input Component */
 function Input({ label, icon, ...props }) {
   return (
     <div>
@@ -286,7 +240,6 @@ function Input({ label, icon, ...props }) {
   );
 }
 
-/* Reusable Select Component */
 function Select({ label, options, ...props }) {
   return (
     <div>

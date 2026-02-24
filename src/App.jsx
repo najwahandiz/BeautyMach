@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
-import { useDispatch } from 'react-redux'
-import './App.css'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+// App: router + routes. On mount loads user from localStorage.
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import './App.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 // User pages
 import Home from './pages/User/Home'
@@ -26,8 +27,6 @@ import { loadUserFromStorage } from './features/user/userThunks'
 
 function App() {
   const dispatch = useDispatch();
-
-  // Load user data from localStorage on app start
   useEffect(() => {
     dispatch(loadUserFromStorage());
   }, [dispatch]);

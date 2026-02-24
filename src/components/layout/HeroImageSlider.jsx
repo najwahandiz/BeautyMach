@@ -14,8 +14,8 @@ export default function HeroImageSlider() {
   }, []);
 
   return (
-    <div className="relative w-full h-[620px] rounded-[40px] overflow-hidden shadow-2xl bg-gray-100">
-      <AnimatePresence mode="wait">
+    <div className="relative w-full h-[570px] rounded-[40px] overflow-hidden shadow-2xl bg-gray-100 mt-8">
+      <AnimatePresence mode="popLayout">
         <motion.img
           key={index}
           src={images[index]}

@@ -7,93 +7,39 @@ import PopUpDelete from '../../components/popUpDelete';
 import PopUpUpdate from '../../components/PopUpUpdate';
 import ProductFilters from '../../features/products/ProductFilters';
 
+const PRODUCTS_PER_PAGE = 8;
+
+function getStockStatus(stock) {
+  if (stock === 0) return { text: 'Out of Stock', color: 'text-red-600', bg: 'bg-red-50' };
+  if (stock < 20) return { text: 'Low Stock', color: 'text-amber-600', bg: 'bg-amber-50' };
+  return { text: 'In Stock', color: 'text-green-600', bg: 'bg-green-50' };
+}
+
 export default function ManageProducts() {
   const dispatch = useDispatch();
-  
-  // Get products data from Redux store
   const { productsData, loading } = useSelector((state) => state.products);
-
-  // Delete popup state
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [productToDelete, setProductToDelete] = useState(null);
-
-  //update popup state
-  const [isUpdateOpen, setIsUpdateOpen] = useState(false);
-  const [productToUpdate, setProductToUpdate] = useState(null);
-
-  // Search and filter state
+  const [modal, setModal] = useState(null); // { type: 'delete', id } | { type: 'update', product } | null
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
   const [stockFilter, setStockFilter] = useState('highToLow');
-
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 8;
 
-  // Fetch products when component loads
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
 
-  // Get unique categories from products
-  const categories = ['All', ...new Set(productsData?.map((p) => p.category) || [])];
-
-  // Filter products by search and category
-  const filteredProducts = productsData?.filter((product) => {
-    const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  }) || [];
-
-  // Sort products by stock
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (stockFilter === 'highToLow') {
-      return b.stock - a.stock;
-    }
-    return a.stock - b.stock;
-  });
-
-  // Calculate pagination
-  const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
-  const startIndex = (currentPage - 1) * productsPerPage;
-  const endIndex = startIndex + productsPerPage;
+  const filteredProducts = productsData?.filter((p) =>
+    p.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+  const sortedProducts = [...filteredProducts].sort((a, b) =>
+    stockFilter === 'highToLow' ? b.stock - a.stock : a.stock - b.stock
+  );
+  const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE) || 1;
+  const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const endIndex = startIndex + PRODUCTS_PER_PAGE;
   const currentProducts = sortedProducts.slice(startIndex, endIndex);
 
-  // Handle delete button click
-  const handleDeleteClick = (productId) => {
-    setProductToDelete(productId);
-    setIsDeleteOpen(true);
-  };
+  const setPageOne = () => setCurrentPage(1);
 
-  // Handle update button click
-  const handleUpdateClick = (product) => {
-    setProductToUpdate(product);
-    setIsUpdateOpen(true);
-  };
-
-  // Get stock status color and text
-  const getStockStatus = (stock) => {
-    if (stock === 0) {
-      return { text: 'Out of Stock', color: 'text-red-600', bg: 'bg-red-50' };
-    }
-    if (stock < 20) {
-      return { text: 'Low Stock', color: 'text-amber-600', bg: 'bg-amber-50' };
-    }
-    return { text: 'In Stock', color: 'text-green-600', bg: 'bg-green-50' };
-  };
-
-  // Reset to page 1 when filters change
-  const handleSearchChange = (value) => {
-    setSearchTerm(value);
-    setCurrentPage(1);
-  };
-
-  const handleCategoryChange = (value) => {
-    setSelectedCategory(value);
-    setCurrentPage(1);
-  };
-
-  // Show loading spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -106,7 +52,6 @@ export default function ManageProducts() {
     <div className="min-h-screen p-3 sm:p-4 md:p-6 text-gray-800">
       <div className="max-w-7xl mx-auto">
         
-        {/* Page Header */}
         <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#9E3B3B]">
@@ -124,23 +69,17 @@ export default function ManageProducts() {
           </Link>
         </div>
 
-        {/* Filters Section */}
         <ProductFilters
           searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
-          selectedCategory={selectedCategory}
-          onCategoryChange={handleCategoryChange}
+          onSearchChange={(v) => { setSearchTerm(v); setPageOne(); }}
           stockFilter={stockFilter}
           onStockFilterChange={setStockFilter}
-          categories={categories}
         /> 
 
-        {/* Desktop Table View */}
         <div className="hidden md:block bg-white rounded-xl shadow-md border border-[#e5e5d1] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               
-              {/* Table Header */}
               <thead className="bg-[#9E3B3B] border-b border-gray-100">
                 <tr className="text-xs font-semibold text-white uppercase tracking-wider">
                   <th className="px-6 py-4">Product</th>
@@ -151,15 +90,13 @@ export default function ManageProducts() {
                 </tr>
               </thead>
 
-              {/* Table Body */}
               <tbody className="divide-y divide-gray-50">
                 {currentProducts.map((product) => {
-                  const status = getStockStatus(product.stock || 0);
+                  const status = getStockStatus(product.stock ?? 0);
                   
                   return (
                     <tr key={product.id} className="hover:bg-[#9E3B3B]/10 transition-colors">
                       
-                      {/* Product Name & Category */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
                           {(product.imageUrl || product.image) ? (
@@ -180,39 +117,29 @@ export default function ManageProducts() {
                         </div>
                       </td>
 
-                      {/* Product ID */}
                       <td className="px-6 py-4 font-mono text-sm text-gray-600">
                         {product.id}
                       </td>
 
-                      {/* Stock Status */}
                       <td className="px-6 py-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase ${status.bg} ${status.color}`}>
                           {status.text} ({product.stock})
                         </span>
                       </td>
 
-                      {/* Price */}
                       <td className="px-6 py-4 font-semibold text-lg">
                         ${product.price?.toFixed(2)}
                       </td>
 
-                      {/* Action Buttons */}
                       <td className="px-6 py-4">
                         <div className="flex justify-center gap-2">
                           <button className="p-2 hover:bg-[#9E3B3B]/10 rounded-lg cursor-pointer transition-colors">
                             <Link to={`/products/${product.id}`}><Eye size={18} color="gray" /></Link>
                           </button>
-                          <button 
-                            onClick={() => handleUpdateClick(product)}
-                            className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
-                          >
+                          <button onClick={() => setModal({ type: 'update', product })} className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">
                             <Edit size={18} color="gray" />
                           </button>
-                          <button
-                            className="p-2 hover:bg-red-50 rounded-lg cursor-pointer transition-colors"
-                            onClick={() => handleDeleteClick(product.id)}
-                          >
+                          <button onClick={() => setModal({ type: 'delete', id: product.id })} className="p-2 hover:bg-red-50 rounded-lg cursor-pointer transition-colors">
                             <Trash2 size={18} color="gray" />
                           </button>
                         </div>
@@ -226,7 +153,6 @@ export default function ManageProducts() {
             </table>
           </div>
 
-          {/* Desktop Pagination Footer */}
           <div className="px-6 py-4 bg-[#FAF9F6] border-t border-gray-100 flex items-center justify-between">
             <p className="text-sm text-gray-600">
               Showing <span className="font-semibold">{startIndex + 1}</span> to{' '}
@@ -270,13 +196,11 @@ export default function ManageProducts() {
           </div>
         </div>
 
-        {/* Mobile Card View */}
         <div className="md:hidden space-y-4">
           {currentProducts.map((product) => {
-            const status = getStockStatus(product.stock || 0);
-            
+            const status = getStockStatus(product.stock ?? 0);
             return (
-              <div 
+              <div
                 key={product.id} 
                 className="bg-white rounded-xl shadow-md border border-[#e5e5d1] p-4"
               >
@@ -307,19 +231,13 @@ export default function ManageProducts() {
 
                 {/* Action Buttons */}
                 <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-gray-100">
-                  <button className="p-2 hover:bg-[#9E3B3B]/10 rounded-lg cursor-pointer transition-colors">
+                  <Link to={`/products/${product.id}`} className="p-2 hover:bg-[#9E3B3B]/10 rounded-lg transition-colors">
                     <Eye size={20} color="gray" />
-                  </button>
-                  <button 
-                    onClick={() => handleUpdateClick(product)}
-                    className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
-                  >
+                  </Link>
+                  <button onClick={() => setModal({ type: 'update', product })} className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">
                     <Edit size={20} color="gray" />
                   </button>
-                  <button
-                    className="p-2 hover:bg-red-50 rounded-lg cursor-pointer transition-colors"
-                    onClick={() => handleDeleteClick(product.id)}
-                  >
+                  <button onClick={() => setModal({ type: 'delete', id: product.id })} className="p-2 hover:bg-red-50 rounded-lg cursor-pointer transition-colors">
                     <Trash2 size={20} color="gray" />
                   </button>
                 </div>
@@ -327,7 +245,6 @@ export default function ManageProducts() {
             );
           })}
 
-          {/* Mobile Pagination */}
           <div className="bg-white rounded-xl shadow-md border border-[#e5e5d1] p-4">
             <p className="text-sm text-gray-600 text-center mb-3">
               Showing {startIndex + 1} - {Math.min(endIndex, sortedProducts.length)} of {sortedProducts.length}
@@ -370,20 +287,16 @@ export default function ManageProducts() {
 
       </div>
 
-      {/* Delete Confirmation Popup */}
       <PopUpDelete
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        productDelete={productToDelete}
+        isOpen={modal?.type === 'delete'}
+        onClose={() => setModal(null)}
+        productDelete={modal?.type === 'delete' ? modal.id : null}
       />
-
-      {/* Update Confirmation Popup */}
       <PopUpUpdate
-        isOpen={isUpdateOpen}
-        onClose={() => setIsUpdateOpen(false)}
-        productToUpdate={productToUpdate}
+        isOpen={modal?.type === 'update'}
+        onClose={() => setModal(null)}
+        productToUpdate={modal?.type === 'update' ? modal.product : null}
       />
-
     </div>
   );
 }

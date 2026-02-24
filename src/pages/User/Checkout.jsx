@@ -1,106 +1,68 @@
-/**
- * Checkout.jsx
- * 
- * Modern, premium checkout page with shipping form and order summary.
- * 
- * Features:
- * - Two-column layout (desktop) / Single-column (mobile)
- * - Shipping information form
- * - Order summary with cart items
- * - Form validation
- * - Order confirmation with success animation
- * - Clears cart after confirmation
- * 
- * NOTE: This is a frontend-only checkout simulation.
- * Backend integration (n8n) can be added later.
- */
-
+// Checkout: shipping form, order summary, confirm → create order + n8n, then clear cart.
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import {
-  Shield,
-  CheckCircle2,
-  Package,
-  Truck,
-  Lock,
-} from 'lucide-react';
+import { CheckCircle2, Package, Truck, Lock } from 'lucide-react';
 import { selectCartItems, selectCartTotal } from '../../features/cart/cartSelectors';
 import { clearCart } from '../../features/cart/cartSlice';
 import { createOrder } from '../../features/orders/ordersAPI';
 import { sendOrderToN8n } from '../../services/n8nService';
 import { useToast } from '../../components/Toast';
 
+function FormField({ name, label, type = 'text', error, value, onChange, placeholder, required = true }) {
+  const hasError = !!error;
+  return (
+    <div>
+      <label htmlFor={name} className="block text-[11px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+        {label} {required && <span className="text-[#8A2B2B]">*</span>}
+      </label>
+      <input
+        type={type}
+        id={name}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={`w-full py-3 px-4 rounded-xl border transition-all duration-300 outline-none ${
+          hasError
+            ? 'border-red-300 focus:border-[#8A2B2B] focus:ring-2 focus:ring-[#8A2B2B]/15'
+            : 'border-gray-200 focus:border-[#8A2B2B] focus:ring-2 focus:ring-[#8A2B2B]/15'
+        }`}
+      />
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+    </div>
+  );
+}
+
 export default function Checkout() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  
-  // Get cart data from Redux
   const cartItems = useSelector(selectCartItems);
   const subtotal = useSelector(selectCartTotal);
-  const shipping = 0; // Always free
-  const total = subtotal + shipping;
-  
-  // Form state
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    city: '',
-    message: ''
-  });
-  
-  // Form validation errors
+  const total = subtotal + 0;
+  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', city: '', message: '' });
   const [errors, setErrors] = useState({});
-  
-  // Order confirmation state
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Handle form input change
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
-  
-  // Validate form
+
   const validateForm = () => {
     const newErrors = {};
-    
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    }
-    
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
-    
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-    
-    if (!formData.city.trim()) {
-      newErrors.city = 'City is required';
-    }
-    
+    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Please enter a valid email';
+    if (!formData.city.trim()) newErrors.city = 'City is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
-  // Handle order confirmation: create order in MockAPI → send to n8n → success
+
   const handleConfirmOrder = async (e) => {
     e.preventDefault();
 
@@ -292,7 +254,7 @@ export default function Checkout() {
   
   // Main checkout view
   return (
-    <div className="min-h-screen bg-[#fffaf5]/10 pt-10 ">
+    <div className="min-h-screen bg-[#fcf5f5] pt-10 ">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-12 py-8 sm:py-12">
         
         {/* Header */}
@@ -313,124 +275,22 @@ export default function Checkout() {
           
           {/* LEFT: Shipping Information Form */}
           <div className="order-2 lg:order-1">
-            <div className="bg-white rounded-4xl p-6 sm:p-8 border-1 border-gray-300 shadow-lg">
-              <div className="flex items-center gap-2 mb-6">
+            <div className="bg-white rounded-2xl shadow-sm p-8 sm:p-10">
+              <div className="flex items-center gap-2 mb-8">
                 <Truck className="w-5 h-5 text-[#9E3B3B]" />
-                <h2 
-                  className="text-2xl font-bold text-"
-                  style={{ fontFamily: 'Playfair Display, serif' }}
-                >
-                  Shipping Information
-                </h2>
+                <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>Shipping Information</h2>
               </div>
               
               <form onSubmit={handleConfirmOrder} className="space-y-5">
-                {/* First Name */}
-                <div>
-                  <label htmlFor="firstName" className="block text-sm font-semibold text-gray-600 mb-2">
-                    First Name <span className="text-[#9E3B3B]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
-                      errors.firstName 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#9E3B3B] focus:ring-4 focus:ring-[#9E3B3B]/10'
-                    } outline-none`}
-                    placeholder="Enter your first name"
-                  />
-                  {errors.firstName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
-                  )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <FormField name="firstName" label="First Name" value={formData.firstName} onChange={handleChange} error={errors.firstName} placeholder="Enter your first name" />
+                  <FormField name="lastName" label="Last Name" value={formData.lastName} onChange={handleChange} error={errors.lastName} placeholder="Enter your last name" />
                 </div>
-                
-                {/* Last Name */}
+                <FormField name="email" label="Email" type="email" value={formData.email} onChange={handleChange} error={errors.email} placeholder="your.email@example.com" />
+                <FormField name="city" label="City" value={formData.city} onChange={handleChange} error={errors.city} placeholder="Enter your city" />
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Last Name <span className="text-[#9E3B3B]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
-                      errors.lastName 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#9E3B3B] focus:ring-4 focus:ring-[#9E3B3B]/10'
-                    } outline-none`}
-                    placeholder="Enter your last name"
-                  />
-                  {errors.lastName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
-                  )}
-                </div>
-                
-                {/* Email */}
-                <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Email <span className="text-[#9E3B3B]">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
-                      errors.email 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#9E3B3B] focus:ring-4 focus:ring-[#9E3B3B]/10'
-                    } outline-none`}
-                    placeholder="your.email@example.com"
-                  />
-                  {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                  )}
-                </div>
-                
-                {/* City */}
-                <div>
-                  <label htmlFor="city" className="block text-sm font-semibold text-gray-700 mb-2">
-                    City <span className="text-[#9E3B3B]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
-                      errors.city 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                        : 'border-gray-200 focus:border-[#9E3B3B] focus:ring-4 focus:ring-[#9E3B3B]/10'
-                    } outline-none`}
-                    placeholder="Enter your city"
-                  />
-                  {errors.city && (
-                    <p className="mt-1 text-sm text-red-600">{errors.city}</p>
-                  )}
-                </div>
-                
-                {/* Message (Optional) */}
-                <div>
-                  <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Message (Optional)
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    rows="4"
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#9E3B3B] focus:ring-4 focus:ring-[#9E3B3B]/10 outline-none transition-all resize-none"
-                    placeholder="Any special instructions or notes..."
-                  />
+                  <label htmlFor="message" className="block text-[11px] font-bold uppercase tracking-widest text-gray-500 mb-2">Message (Optional)</label>
+                  <textarea id="message" name="message" value={formData.message} onChange={handleChange} rows="4" className="w-full py-3 px-4 rounded-xl border border-gray-200 focus:border-[#8A2B2B] focus:ring-2 focus:ring-[#8A2B2B]/15 outline-none transition-all duration-300 resize-none" placeholder="Any special instructions or notes..." />
                 </div>
               </form>
             </div>

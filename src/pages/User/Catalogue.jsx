@@ -1,125 +1,60 @@
-/**
- * Catalogue.jsx (Shop Page)
- * 
- * A modern, premium shop page with cleaner UX.
- * 
- * Layout:
- * - TOP: Search bar + Sort dropdown
- * - LEFT: Sticky sidebar with filters (Category + Skin Type only)
- * - RIGHT: Product grid with smaller, elegant cards
- * 
- * Features:
- * - Search by product name (case-insensitive)
- * - Sort by price (low/high)
- * - Filter by category and skin type
- * - Responsive design (sidebar collapses on mobile)
- */
-
+// Catalogue — product listing with search, filters, and sort.
 import { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProducts } from '../../features/products/productsThunks';
 import { Sparkles, SlidersHorizontal, Package, Heart, ChevronRight } from 'lucide-react';
-
-// Import new components
 import SearchBar from '../../components/shop/SearchBar';
 import SortSelect from '../../components/shop/SortSelect';
 import FiltersSidebar, { MobileFilterDrawer } from '../../components/shop/FiltersSidebar';
 import ProductGrid from '../../components/shop/ProductGrid';
 
+function filterAndSortProducts(products, filters) {
+  if (!products?.length) return [];
+  let list = [...products];
+  if (filters.search) {
+    const q = filters.search.toLowerCase();
+    list = list.filter((p) => (p.name || '').toLowerCase().includes(q));
+  }
+  if (filters.categories.length > 0) {
+    list = list.filter((p) =>
+      filters.categories.some((cat) => (p.subcategory || '').toLowerCase().includes(cat.toLowerCase()))
+    );
+  }
+  if (filters.skinTypes.length > 0) {
+    list = list.filter((p) =>
+      filters.skinTypes.some((t) => (p.skinType || '').toLowerCase().includes(t.toLowerCase()))
+    );
+  }
+  if (filters.sort === 'price-low') list.sort((a, b) => (a.price || 0) - (b.price || 0));
+  else if (filters.sort === 'price-high') list.sort((a, b) => (b.price || 0) - (a.price || 0));
+  else list.sort((a, b) => (b.quantityVendu || 0) - (a.quantityVendu || 0));
+  return list;
+}
+
+const initialFilters = { search: '', sort: 'default', categories: [], skinTypes: [] };
+
 export default function Catalogue() {
   const dispatch = useDispatch();
-  
-  // Get products from Redux store
   const { productsData, loading, error } = useSelector((state) => state.products);
-
-  // Mobile filter drawer state
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState(initialFilters);
 
-  // Filter state - simplified (no price range)
-  const [filters, setFilters] = useState({
-    search: '',
-    sort: 'default',
-    categories: [],
-    skinTypes: []
-  });
-
-  // Fetch products on mount
   useEffect(() => {
-    if (!productsData || productsData.length === 0) {
-      dispatch(fetchProducts());
-    }
+    if (!productsData?.length) dispatch(fetchProducts());
   }, [dispatch, productsData]);
 
-  // Clear all filters
-  const clearFilters = () => {
-    setFilters({
-      search: '',
-      sort: 'default',
-      categories: [],
-      skinTypes: []
-    });
-  };
-
-  // Check if any filters are active (for mobile badge)
-  const activeFilterCount = useMemo(() => {
-    return filters.categories.length + filters.skinTypes.length;
-  }, [filters]);
-
-  // Filter and sort products
-  const filteredProducts = useMemo(() => {
-    if (!productsData) return [];
-
-    let result = [...productsData];
-
-    // Search filter (case-insensitive)
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      result = result.filter(product =>
-        product.name?.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Category filter (case-insensitive comparison)
-    if (filters.categories.length > 0) {
-      result = result.filter(product => {
-        const productCategory = (product.subcategory || '').toLowerCase();
-        // Check if any selected filter matches the product category
-        return filters.categories.some(cat => productCategory.includes(cat.toLowerCase()));
-      });
-    }
-
-    // Skin type filter (case-insensitive comparison)
-    if (filters.skinTypes.length > 0) {
-      result = result.filter(product => {
-        const productSkinType = (product.skinType || '').toLowerCase();
-        // Check if any selected filter matches the product skin type
-        return filters.skinTypes.some(type => productSkinType.includes(type.toLowerCase()));
-      });
-    }
-
-    // Sort products
-    switch (filters.sort) {
-      case 'price-low':
-        result.sort((a, b) => (a.price || 0) - (b.price || 0));
-        break;
-      case 'price-high':
-        result.sort((a, b) => (b.price || 0) - (a.price || 0));
-        break;
-      default:
-        // Default: featured (best sellers first)
-        result.sort((a, b) => (b.quantityVendu || 0) - (a.quantityVendu || 0));
-    }
-
-    return result;
-  }, [productsData, filters]);
+  const clearFilters = () => setFilters(initialFilters);
+  const activeFilterCount = filters.categories.length + filters.skinTypes.length;
+  const filteredProducts = useMemo(
+    () => filterAndSortProducts(productsData, filters),
+    [productsData, filters]
+  );
 
   return (
     <div className="min-h-screen bg-white mt-8">
-      {/* Hero Header - Compact */}
-      <div className="bg-[#360d0d]/10 border-b border-gray-100 mb-0 pb-0">
+      <div className="bg-gradient-to-b from-[#9E3B3B]/10 to-[#fffaf5] border-b border-gray-100 mb-0 pb-0">
         <div className="max-w-7xl mx-auto px-4 py-10 sm:py-12">
           <div className="text-center">
-            {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-[#9E3B3B]/10 mb-4">
               <Sparkles className="w-4 h-4 text-[#9E3B3B]" />
               <span className="text-sm font-medium text-gray-700">Premium Skincare</span>
@@ -135,24 +70,20 @@ export default function Catalogue() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
-        
-        {/* TOP BAR: Search + Sort */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-gray-200">
-          {/* Search Bar */}
-          <SearchBar 
+          <SearchBar
             value={filters.search}
-            onChange={(value) => setFilters({ ...filters, search: value })}
+            onChange={(value) => setFilters((f) => ({ ...f, search: value }))}
             placeholder="Search products..."
           />
           
           {/* Right side: Sort + Mobile Filter Button */}
           <div className="flex items-center gap-3">
             {/* Sort Dropdown */}
-            <SortSelect 
+            <SortSelect
               value={filters.sort}
-              onChange={(value) => setFilters({ ...filters, sort: value })}
+              onChange={(value) => setFilters((f) => ({ ...f, sort: value }))}
             />
             
             {/* Mobile Filter Button */}
@@ -171,10 +102,7 @@ export default function Catalogue() {
           </div>
         </div>
 
-        {/* Content Area: Sidebar + Product Grid */}
         <div className="flex gap-8">
-          
-          {/* Sidebar Filters - Desktop Only, Sticky */}
           <aside className="hidden lg:block w-56 flex-shrink-0">
             <div className="sticky top-24">
               <FiltersSidebar
@@ -185,9 +113,7 @@ export default function Catalogue() {
             </div>
           </aside>
 
-          {/* Main Content Area */}
           <main className="flex-1 min-w-0">
-            {/* Product Count */}
             <div className="flex items-center gap-2 mb-5">
               <Package className="w-4 h-4 text-[#9E3B3B]" />
               <p className="text-sm text-gray-600">
@@ -195,7 +121,6 @@ export default function Catalogue() {
               </p>
             </div>
 
-            {/* Error State */}
             {error ? (
               <div className="flex flex-col items-center justify-center py-16 px-4">
                 <div className="text-5xl mb-4">😕</div>
@@ -213,15 +138,13 @@ export default function Catalogue() {
                 </button>
               </div>
             ) : (
-              /* Product Grid */
-              <ProductGrid 
+              <ProductGrid
                 products={filteredProducts}
                 loading={loading}
                 onClearFilters={clearFilters}
               />
             )}
 
-            {/* Bottom CTA Section */}
             {!loading && filteredProducts.length > 0 && (
               <div className="mt-12 text-center">
                 <div className="bg-gradient-to-r from-[#9E3B3B]/5 via-[#fffaf5] to-[#ea7b7b]/5 rounded-2xl p-8 border border-[#9E3B3B]/10">
@@ -250,7 +173,6 @@ export default function Catalogue() {
         </div>
       </div>
 
-      {/* Mobile Filter Drawer */}
       <MobileFilterDrawer
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}

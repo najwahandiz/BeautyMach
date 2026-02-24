@@ -1,51 +1,37 @@
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { createProduct } from "../../features/products/productsThunks";
-import { Upload, Package, DollarSign, ArrowLeft } from "lucide-react";
-import { useToast } from "../../components/Toast";
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { createProduct } from '../../features/products/productsThunks';
+import { Upload, Package, DollarSign, ArrowLeft } from 'lucide-react';
+import { useToast } from '../../components/Toast';
+
+const initialProduct = {
+  name: '', subcategory: '', skinType: '', ingredients: '', size: '', price: '', concerns: '', stock: '', minStock: '', description: '', imageUrl: '',
+};
 
 export default function AddProduct() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.products);
   const { showToast } = useToast();
-
-  const [product, setProduct] = useState({
-    name: "",
-    subcategory: "",
-    skinType: "",
-    ingredients: "",
-    size:"",
-    price: "",
-    concerns:"",
-    stock: "",
-    minStock: "",
-    description: "",
-    imageUrl: "",
-  });
+  const [product, setProduct] = useState(initialProduct);
 
   const handleChange = (e) => {
-    setProduct({ ...product, [e.target.name]: e.target.value });
+    setProduct((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "skinCareProducts");
-
+    formData.append('file', file);
+    formData.append('upload_preset', 'skinCareProducts');
     try {
-      const res = await axios.post(
-        "https://api.cloudinary.com/v1_1/dgqoop9qz/image/upload",
-        formData
-      );
-      setProduct({ ...product, imageUrl: res.data.secure_url });
-    } catch (error) {
-      console.log("Image upload error", error);
+      const res = await axios.post('https://api.cloudinary.com/v1_1/dgqoop9qz/image/upload', formData);
+      setProduct((prev) => ({ ...prev, imageUrl: res.data.secure_url }));
+    } catch (err) {
+      console.log('Image upload error', err);
     }
   };
 
@@ -57,29 +43,23 @@ export default function AddProduct() {
       size: Number(product.size),
       stock: Number(product.stock),
       minStock: Number(product.minStock),
-      ingredients: product.ingredients.split(","),
+      ingredients: product.ingredients.split(','),
     };
     await dispatch(createProduct(newProduct));
-    showToast("Product added successfully!", "success");
-    navigate("/manage");
+    showToast('Product added successfully!', 'success');
+    navigate('/manage');
   };
 
   return (
-    <div className="min-h-screen  py-12 px-4 sm:px-6">
+    <div className="min-h-screen py-12 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
-        {/* Back Button */}
-        <button 
-          onClick={() => navigate("/manage")}
-          className="flex items-center text-[#9E3B3B] font-medium mb-6 hover:underline cursor-pointer"
-        >
+        <button onClick={() => navigate('/manage')} className="flex items-center text-[#9E3B3B] font-medium mb-6 hover:underline cursor-pointer">
           <ArrowLeft size={18} className="mr-2" /> Back to Inventory
         </button>
-
         <form
           onSubmit={handleSubmit}
           className="bg-white rounded-2xl shadow-xl border border-[#e5e5d1] overflow-hidden"
         >
-          {/* Form Header */}
           <div className="bg-[#9E3B3B] p-6 text-white text-center">
             <h1 className="text-2xl font-bold tracking-tight">Add New Skincare Product</h1>
             <p className="text-white/80 text-sm mt-1">Enter the details of your premium inventory item</p>
@@ -113,92 +93,24 @@ export default function AddProduct() {
               </div>
             </div>
 
-            {/* Inputs Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
-              <Input label="Product Name" name="name" icon={<Package size={16}/>} onChange={handleChange} placeholder="e.g. Vitamin C Glow Serum" />
+              <Input label="Product Name" name="name" value={product.name} icon={<Package size={16} />} onChange={handleChange} placeholder="e.g. Vitamin C Glow Serum" />
               
-              <Select
-                label="Category"
-                name="subcategory"
-                options={["cleanser", "moisturizer", "serum", "sunscreen"]}
-                onChange={handleChange}
-              />
-
-              <Select
-                label="Skin Type"
-                name="skinType"
-                options={["dry", "normal", "oily", "sensitive", "combination", "all types"]}
-                onChange={handleChange}
-              />
-
-              <Input
-                label="Price ($)"
-                name="price"
-                type="number"
-                min="0"
-                step="0.01"
-                icon={<DollarSign size={16}/>}
-                onChange={handleChange}
-                placeholder="0.00"
-              />
-
-              <Input
-                label="Size"
-                name="size"
-                type="number"
-                min="0"
-                onChange={handleChange}
-                placeholder="100"
-              />
-
-              <Select
-                label="Concerns"
-                name="concerns"
-                options={["acne", "breakouts", "redness", "dryness", "sensitivity", "reactivity", "tightness", "excess oil"]}
-                onChange={handleChange}
-              />
-    
-
-              <Input 
-                label="Current Stock" 
-                name="stock" 
-                type="number"
-                min="0"
-                onChange={handleChange} 
-                placeholder="100"
-              />
-
-              <Input
-                label="Minimum Stock Warning"
-                name="minStock"
-                type="number"
-                min="0"
-                onChange={handleChange}
-                placeholder="10"
-              />
-
+              <Select label="Category" name="subcategory" value={product.subcategory} options={['cleanser', 'moisturizer', 'serum', 'sunscreen']} onChange={handleChange} />
+              <Select label="Skin Type" name="skinType" value={product.skinType} options={['dry', 'normal', 'oily', 'sensitive', 'combination', 'all types']} onChange={handleChange} />
+              <Input label="Price ($)" name="price" type="number" min="0" step="0.01" value={product.price} icon={<DollarSign size={16} />} onChange={handleChange} placeholder="0.00" />
+              <Input label="Size" name="size" type="number" min="0" value={product.size} onChange={handleChange} placeholder="100" />
+              <Select label="Concerns" name="concerns" value={product.concerns} options={['acne', 'breakouts', 'redness', 'dryness', 'sensitivity', 'reactivity', 'tightness', 'excess oil']} onChange={handleChange} />
+              <Input label="Current Stock" name="stock" type="number" min="0" value={product.stock} onChange={handleChange} placeholder="100" />
+              <Input label="Minimum Stock Warning" name="minStock" type="number" min="0" value={product.minStock} onChange={handleChange} placeholder="10" />
               <div className="md:col-span-2">
-                <Input
-                  label="Ingredients (comma separated)"
-                  name="ingredients"
-                  placeholder="Aqua, Glycerin, Niacinamide..."
-                  onChange={handleChange}
-                />
+                <Input label="Ingredients (comma separated)" name="ingredients" value={product.ingredients} placeholder="Aqua, Glycerin, Niacinamide..." onChange={handleChange} />
               </div>
-
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Product Description</label>
-                <textarea
-                  name="description"
-                  rows="4"
-                  placeholder="Describe the benefits and usage instructions..."
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9E3B3B] focus:border-[#9E3B3B] outline-none transition-all"
-                />
+                <textarea name="description" rows="4" value={product.description} placeholder="Describe the benefits and usage instructions..." onChange={handleChange} className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9E3B3B] focus:border-[#9E3B3B] outline-none transition-all" />
               </div>
             </div>
-
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -218,8 +130,6 @@ export default function AddProduct() {
     </div>
   );
 }
-
-/* 🔹 Improved Reusable Components */
 
 function Input({ label, icon, ...props }) {
   return (

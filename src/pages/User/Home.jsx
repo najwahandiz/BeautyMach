@@ -1,99 +1,45 @@
-/**
- * Home.jsx
- * 
- * Modern, premium home page with hero section and additional content sections.
- * Features:
- * - Hero section with AI-powered skincare messaging
- * - Features section
- * - Featured products preview
- * - Testimonials section
- * - CTA section
- * - Fully responsive
- */
+// Home: hero, features, best sellers, testimonials, CTA.
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useSelector, useDispatch } from 'react-redux';
+import { ArrowRight, CheckCircle2, Star, Sparkles, Heart, Shield, Package, TrendingUp } from 'lucide-react';
+import HeroImageSlider from '../../components/layout/HeroImageSlider';
+import { fetchProducts } from '../../features/products/productsThunks';
 
-import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { useSelector, useDispatch } from "react-redux";
-import { 
-  ArrowRight, 
-  CheckCircle2, 
-  Star, 
-  Sparkles,
-  Heart,
-  Shield,
-  Truck,
-  Package,
-  Droplets,
-  TrendingUp
-} from "lucide-react";
-import HeroImageSlider from "../../components/layout/HeroImageSlider";
-import { fetchProducts } from "../../features/products/productsThunks";
+const container = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.2 } } };
+const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.215, 0.61, 0.355, 1] } } };
 
 export default function Home() {
   const dispatch = useDispatch();
   const { productsData } = useSelector((state) => state.products);
-  
-  // Fetch products on mount
+
   useEffect(() => {
-    if (!productsData || productsData.length === 0) {
-      dispatch(fetchProducts());
-    }
+    if (!productsData?.length) dispatch(fetchProducts());
   }, [dispatch, productsData]);
-  
-  // Get featured products (best sellers)
+
   const featuredProducts = productsData
-    ? [...productsData]
-        .filter(p => (p.quantityVendu || 0) > 0)
-        .sort((a, b) => (b.quantityVendu || 0) - (a.quantityVendu || 0))
-        .slice(0, 3)
+    ? [...productsData].filter((p) => (p.quantityVendu || 0) > 0).sort((a, b) => (b.quantityVendu || 0) - (a.quantityVendu || 0)).slice(0, 3)
     : [];
-
-  // Animation Variants
-  const container = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15, delayChildren: 0.2 },
-    },
-  };
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { duration: 0.7, ease: [0.215, 0.61, 0.355, 1] } 
-    },
-  };
 
   return (
     <div className="bg-gradient-to-b from-[#fffaf5] via-white to-[#fffaf5]">
-      
-      {/* ===== HERO SECTION ===== */}
       <section className="relative min-h-screen flex items-center px-4 sm:px-6 lg:px-12 overflow-hidden py-20 lg:py-0">
-        
-        {/* Ambient background blur */}
         <div className="absolute -top-20 -right-20 w-[500px] h-[500px] bg-[#ea7b7b]/10 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center w-full">
-          
-          {/* LEFT CONTENT */}
           <motion.div
             initial="hidden"
             animate="visible"
             variants={container}
             className="flex flex-col gap-8 mt-10"
           >
-            {/* Badge */}
             <motion.div variants={fadeUp} className="w-fit">
               <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#9E3B3B]/10 shadow-sm text-[10px] font-bold tracking-widest text-[#9E3B3B] uppercase">
                 <Sparkles size={12} className="animate-pulse" />
                 AI-Powered Skincare
               </div>
             </motion.div>
-
-            {/* Title */}
             <motion.h1
               variants={fadeUp}
               className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-[1.1] tracking-tight"
@@ -104,16 +50,12 @@ export default function Home() {
                 powered by science.
               </span>
             </motion.h1>
-
-            {/* Description */}
             <motion.p
               variants={fadeUp}
               className="text-gray-500 text-lg lg:text-xl max-w-md leading-relaxed"
             >
               Our AI analyzes 20+ skin markers to create a routine tailored just for you. No guesswork, just your best glow.
             </motion.p>
-
-            {/* Action Area */}
             <motion.div variants={fadeUp} className="flex flex-col gap-6">
               <div className="flex flex-wrap gap-4">
                 <Link
@@ -132,7 +74,6 @@ export default function Home() {
                 </Link>
               </div>
 
-              {/* Social Proof */}
               <div className="flex items-center gap-4">
                 <div className="flex gap-0.5 text-[#9E3B3B]">
                   {[...Array(5)].map((_, i) => (
@@ -144,8 +85,6 @@ export default function Home() {
                 </p>
               </div>
             </motion.div>
-
-            {/* Trust Footer */}
             <motion.div
               variants={fadeUp}
               className="flex flex-wrap gap-x-8 gap-y-3 pt-8 border-t border-gray-100"
@@ -160,8 +99,6 @@ export default function Home() {
               </div>
             </motion.div>
           </motion.div>
-
-          {/* RIGHT IMAGE SECTION */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -180,7 +117,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== FEATURES SECTION ===== */}
+
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -196,7 +133,6 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -212,8 +148,6 @@ export default function Home() {
                 Advanced algorithms analyze your skin type and concerns to recommend the perfect products.
               </p>
             </motion.div>
-
-            {/* Feature 2 */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -229,8 +163,6 @@ export default function Home() {
                 Carefully selected, dermatologist-tested ingredients for visible, lasting results.
               </p>
             </motion.div>
-
-            {/* Feature 3 */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -249,8 +181,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* ===== FEATURED PRODUCTS SECTION ===== */}
       {featuredProducts.length > 0 && (
         <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-12 bg-white">
           <div className="max-w-7xl mx-auto">
@@ -333,8 +263,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      {/* ===== TESTIMONIALS SECTION ===== */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-12 bg-gradient-to-br from-[#fffaf5] to-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -385,8 +313,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* ===== CTA SECTION ===== */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-12">
         <div className="max-w-4xl mx-auto">
           <motion.div
