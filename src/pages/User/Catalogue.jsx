@@ -52,23 +52,25 @@ export default function Catalogue() {
 
   return (
     <div className="min-h-screen bg-white mt-8">
-      <div className="bg-gradient-to-b from-[#9E3B3B]/10 to-[#fffaf5] border-b border-gray-100 mb-0 pb-0">
-        <div className="max-w-7xl mx-auto px-4 py-10 sm:py-12">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-[#9E3B3B]/10 mb-4">
-              <Sparkles className="w-4 h-4 text-[#9E3B3B]" />
-              <span className="text-sm font-medium text-gray-700">Premium Skincare</span>
-            </div>
-            
-            <h1 className="text-3xl sm:text-4xl lg:text-4xl font-bold text-[#9E3B3B] mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
-              The SkinCare Collection
+
+       {/* 1. EDITORIAL HERO SECTION */}
+       <header className="relative pt-16 pb-12 overflow-hidden bg-gradient-to-b from-[#9E3B3B]/10 via-white to-[#9E3B3B]/10">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="inline-block">
+            <span className="text-[10px] uppercase tracking-[0.4em] text-[#9E3B3B] font-semibold mb-4 block">
+              Established 2026
+            </span>
+            <h1 className="text-5xl md:text-6xl font-light text-gray-900 mb-6 italic" style={{ fontFamily: 'Playfair Display, serif' }}>
+              The Skincare <span className="text-[#9E3B3B]">Atelier</span>
             </h1>
-            <p className="text-gray-500 text-base max-w-xl mx-auto mb-0 pb-0">
-              Discover our curated collection of premium skincare products.
-            </p>
+            <div className="h-[1px] w-24 bg-[#9E3B3B]/30 mx-auto mb-6"></div>
           </div>
+          <p className="text-stone-500 font-light text-lg max-w-2xl mx-auto italic leading-relaxed">
+            "Beauty begins the moment you decide to be yourself." Explore our curated essentials.
+          </p>
         </div>
-      </div>
+      </header>
+      
 
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-gray-200">

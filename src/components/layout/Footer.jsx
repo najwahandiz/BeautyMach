@@ -28,7 +28,7 @@ import {
 
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-b from-white to-[#9E3B3B]/10 border-t border-gray-100">
+    <footer className="bg-white border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 sm:py-12 lg:px-12 lg:py-16">
         
         {/* Main Footer Content - mobile: 1 col, sm: 2 cols, lg: 4 cols */}

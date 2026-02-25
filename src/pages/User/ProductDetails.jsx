@@ -24,7 +24,7 @@ function getIngredients(ingredients) {
 }
 
 function getSize(product) {
-  return product?.size || product?.volume || null;
+  return product?.size || null;
 }
 
 export default function ProductDetails() {

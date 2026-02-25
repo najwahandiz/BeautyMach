@@ -55,7 +55,7 @@ export default function Orders() {
   );
 
   return (
-    <div className="min-h-screen mt-1 p-4 sm:p-8 lg:p-12">
+    <div className="min-h-screen mt-1 p-4 sm:p-8 lg:p-12 bg-[#FDFBF9]">
       <div className="max-w-7xl mx-auto">
         
         {/* Header Section */}
@@ -90,7 +90,7 @@ export default function Orders() {
             placeholder="Rechercher un client, un email ou un ID..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="w-full pl-14 pr-6 py-5 bg-white border border-gray-100 rounded-2xl text-sm shadow-sm focus:ring-4 focus:ring-[#9E3B3B]/5 focus:border-[#9E3B3B]/20 outline-none transition-all placeholder:text-gray-300"
+            className="w-full pl-14 pr-6 py-5 bg-white border border-gray-100 rounded-2xl text-sm shadow-sm focus:ring-4 focus:ring-[#9E3B3B]/5 focus:border-[#9E3B3B] outline-none transition-all placeholder:text-gray-300"
           />
         </div>
 

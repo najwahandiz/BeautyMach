@@ -49,7 +49,7 @@ export default function ManageProducts() {
   }
 
   return (
-    <div className="min-h-screen p-3 sm:p-4 md:p-6 text-gray-800">
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 text-gray-800 bg-[#FDFBF9]">
       <div className="max-w-7xl mx-auto">
         
         <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">

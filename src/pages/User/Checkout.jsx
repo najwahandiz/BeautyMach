@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Package, Truck, Lock } from 'lucide-react';
+import { CheckCircle2,ChevronLeft, Package, Truck, Lock } from 'lucide-react';
 import { selectCartItems, selectCartTotal } from '../../features/cart/cartSelectors';
 import { clearCart } from '../../features/cart/cartSlice';
 import { createOrder } from '../../features/orders/ordersAPI';
@@ -13,9 +13,9 @@ function FormField({ name, label, type = 'text', error, value, onChange, placeho
   const hasError = !!error;
   return (
     <div>
-      <label htmlFor={name} className="block text-[11px] font-bold uppercase tracking-widest text-gray-500 mb-2">
-        {label} {required && <span className="text-[#8A2B2B]">*</span>}
-      </label>
+    <label htmlFor={name} className="block text-[10px] font-bold uppercase tracking-[0.4em] text-gray-900 ml-1">  
+       {label} {required && <span className="text-[#9E3B3B] opacity-50">*</span>}
+    </label>
       <input
         type={type}
         id={name}
@@ -23,12 +23,13 @@ function FormField({ name, label, type = 'text', error, value, onChange, placeho
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`w-full py-3 px-4 rounded-xl border transition-all duration-300 outline-none ${
-          hasError
-            ? 'border-red-300 focus:border-[#8A2B2B] focus:ring-2 focus:ring-[#8A2B2B]/15'
-            : 'border-gray-200 focus:border-[#8A2B2B] focus:ring-2 focus:ring-[#8A2B2B]/15'
-        }`}
+        className={`w-full py-4 px-5 rounded-2xl bg-white border transition-all duration-500 outline-none text-sm font-light placeholder:text-stone-300
+          ${error 
+            ? 'border-red-200 focus:border-[#9E3B3B]' 
+            : 'border-stone-300 focus:border-[#9E3B3B] focus:ring-4 focus:ring-[#9E3B3B]/5'
+          }`}
       />
+    
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
@@ -254,18 +255,21 @@ export default function Checkout() {
   
   // Main checkout view
   return (
-    <div className="min-h-screen bg-[#fcf5f5] pt-10 ">
+    <div className="min-h-screen bg-[#FDFBF9] pb-4 ">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-12 py-8 sm:py-12">
         
         {/* Header */}
-        <div className="text-center mb-12">
-          
-          <h1 
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#9E3B3B] mb-3"
-            style={{ fontFamily: 'Playfair Display, serif' }}
-          >
-            Cash on Delivery
-          </h1>
+        {/* Header Space */}
+        <div className="pt-10 pb-5 text-center">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-stone-400 hover:text-[#9E3B3B] mx-auto mb-8 transition-colors">
+            <ChevronLeft className="w-3 h-3" /> Back to shopping
+          </button>
+          <h1 className="text-4xl md:text-6xl font-light italic text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>
+          Cash <span className="text-[#9E3B3B]">on Delivery</span>
+          </h1>       
+        </div>
+
+        <div className="text-center mb-12">                
           <p className="text-gray-500 text-base max-w-xl mx-auto">
              Experience total peace of mind. Your order is delivered first, and payment is made only when it reaches your hands.          </p>
         </div>
@@ -275,7 +279,7 @@ export default function Checkout() {
           
           {/* LEFT: Shipping Information Form */}
           <div className="order-2 lg:order-1">
-            <div className="bg-white rounded-2xl shadow-sm p-8 sm:p-10">
+            <div className="bg-white border border-gray-300 shadow-lg rounded-4xl  p-8 sm:p-10">
               <div className="flex items-center gap-2 mb-8">
                 <Truck className="w-5 h-5 text-[#9E3B3B]" />
                 <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>Shipping Information</h2>
@@ -289,8 +293,9 @@ export default function Checkout() {
                 <FormField name="email" label="Email" type="email" value={formData.email} onChange={handleChange} error={errors.email} placeholder="your.email@example.com" />
                 <FormField name="city" label="City" value={formData.city} onChange={handleChange} error={errors.city} placeholder="Enter your city" />
                 <div>
-                  <label htmlFor="message" className="block text-[11px] font-bold uppercase tracking-widest text-gray-500 mb-2">Message (Optional)</label>
-                  <textarea id="message" name="message" value={formData.message} onChange={handleChange} rows="4" className="w-full py-3 px-4 rounded-xl border border-gray-200 focus:border-[#8A2B2B] focus:ring-2 focus:ring-[#8A2B2B]/15 outline-none transition-all duration-300 resize-none" placeholder="Any special instructions or notes..." />
+                  <label htmlFor="message" className="block text-[10px] font-bold uppercase tracking-[0.4em] text-gray-900 mb-2">Message (Optional)</label>
+                  <textarea id="message" name="message" value={formData.message} onChange={handleChange} rows="4"
+                   className="w-full py-3 px-4 rounded-xl border border-gray-200 focus:border-[#8A2B2B] focus:ring-2 focus:ring-[#8A2B2B]/15 outline-none transition-all duration-300 resize-none" placeholder="Any special instructions or notes..." />
                 </div>
               </form>
             </div>

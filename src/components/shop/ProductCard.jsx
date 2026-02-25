@@ -1,14 +1,4 @@
-/**
- * ProductCard.jsx
- * 
- * A smaller, cleaner, more elegant product card.
- * Features:
- * - Reduced image height (aspect-[4/3] instead of square)
- * - Less padding
- * - Clean typography
- * - Subtle hover animation (lift + shadow)
- * - Add to Cart + View Details buttons
- */
+
 
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';

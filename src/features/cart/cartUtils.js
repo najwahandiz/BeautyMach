@@ -79,16 +79,3 @@ export const clearCartStorage = () => {
     console.error('Error clearing cart from localStorage:', error);
   }
 };
-
-/**
- * FORMAT PRICE
- * 
- * Formats a number as currency (MAD - Moroccan Dirham)
- * 
- * @param {number} price - The price to format
- * @returns {string} Formatted price string
- */
-export const formatPrice = (price) => {
-  return `${price.toFixed(2)} MAD`;
-};
-

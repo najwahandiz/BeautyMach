@@ -14,7 +14,6 @@
 import { useDispatch } from 'react-redux';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { increaseQuantity, decreaseQuantity, removeFromCart } from './cartSlice';
-import { formatPrice } from './cartUtils';
 
 export default function CartItem({ item }) {
   const dispatch = useDispatch();
@@ -86,7 +85,7 @@ export default function CartItem({ item }) {
           
           {/* Unit Price */}
           <p className="text-xs text-gray-500">
-            {formatPrice(price)}
+            ${`${price.toFixed(2)}`}
           </p>
           
           {/* Quantity Controls */}
@@ -127,7 +126,7 @@ export default function CartItem({ item }) {
         
         {/* Item Total */}
         <p className="text-sm font-semibold text-[#9E3B3B] mt-1">
-          {formatPrice(itemTotal)}
+          ${`${itemTotal.toFixed(2)}`}
         </p>
       </div>
     </div>

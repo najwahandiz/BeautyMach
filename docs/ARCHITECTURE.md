@@ -38,7 +38,7 @@ src/
 │   ├── cart/
 │   │   ├── cartSlice.js      # State: items, totalQuantity, totalPrice, isOpen
 │   │   ├── cartSelectors.js  # selectCartItems, selectCartTotal, etc.
-│   │   ├── cartUtils.js      # localStorage + formatPrice
+│   │   ├── cartUtils.js      # localStorage persistence
 │   │   └── CartItem.jsx       # One line in cart sidebar
 │   └── orders/
 │       └── ordersAPI.js      # MockAPI for orders (no slice; used by Checkout & Admin Orders)
@@ -107,7 +107,7 @@ src/
 | **Catalogue**           | products           | fetchProducts                                             | productsAPI.getProducts           |
 | **ProductDetails**     | cart               | addToCart, openCart                                       | —                                 |
 | **ProductCard** (shop)  | cart               | addToCart, openCart                                       | —                                 |
-| **CartSidebar**        | cart               | closeCart, clearCart, increaseQuantity, decreaseQuantity, removeFromCart | cartUtils.formatPrice    |
+| **CartSidebar**        | cart               | closeCart, clearCart, increaseQuantity, decreaseQuantity, removeFromCart | —                        |
 | **SkinQuiz**           | user               | saveQuizResultThunk, saveRecommendationsThunk, loginUser   | userAPI, aiRecommendation, aiPrompt |
 | **Recommendation**     | user               | (reads recommendations)                                   | —                                 |
 | **Profile**            | user, cart         | loginUser, logoutUser, updateUserProfileThunk, clearQuizDataThunk, addToCart, openCart | userAPI |

@@ -2,7 +2,6 @@
  * Skin Type Quiz Page
  * 
  * A multi-step quiz that determines user's skin type and provides
- * AI-powered personalized skincare recommendations.
  * 
  * KEY BEHAVIOR:
  * - If user already completed quiz → show saved results automatically
@@ -136,7 +135,7 @@ function RecommendedProductCard({ stepKey, stepInfo, recommendation, product, di
           </div>
           <div>
             <p className="text-xs text-gray-100 uppercase tracking-wider">{stepInfo.description}</p>
-            <p className="font-semibold text-gray-800 flex items-center gap-2">
+            <p className="font-semibold text-gray-300 flex items-center gap-2">
               <span>{stepInfo.icon}</span>
               {stepInfo.label}
             </p>

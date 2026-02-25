@@ -23,7 +23,6 @@ import {
   selectCartIsOpen,
   selectCartIsEmpty 
 } from '../../features/cart/cartSelectors';
-import { formatPrice } from '../../features/cart/cartUtils';
 import CartItem from '../../features/cart/CartItem';
 
 export default function CartSidebar() {
@@ -177,7 +176,7 @@ export default function CartSidebar() {
             <div className="flex items-center justify-between mb-4">
               <span className="text-gray-600">Subtotal</span>
               <span className="text-lg font-bold text-gray-800">
-                {formatPrice(totalPrice)}
+                ${`${totalPrice.toFixed(2)}`}
               </span>
             </div>
             
