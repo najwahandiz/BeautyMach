@@ -1,9 +1,7 @@
-
-
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Check, Eye, Sparkles } from 'lucide-react';
+import { ShoppingBag, Check, Sparkles } from 'lucide-react';
 import { addToCart, openCart } from '../../features/cart/cartSlice';
 import { selectIsInCart } from '../../features/cart/cartSelectors';
 import { useToast } from '../Toast';

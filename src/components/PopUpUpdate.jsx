@@ -49,7 +49,7 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
       const res = await axios.post('https://api.cloudinary.com/v1_1/dgqoop9qz/image/upload', data);
       setFormData((prev) => ({ ...prev, imageUrl: res.data.secure_url }));
     } catch (err) {
-      console.log('Image upload error', err);
+      // Image upload failed - user can try again
     }
   };
 

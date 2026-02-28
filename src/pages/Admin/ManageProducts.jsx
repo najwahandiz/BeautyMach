@@ -9,6 +9,48 @@ import ProductFilters from '../../features/products/ProductFilters';
 
 const PRODUCTS_PER_PAGE = 8;
 
+// Pagination controls - prev/next + page numbers
+function PaginationControls({ currentPage, totalPages, startIndex, endIndex, total, onPageChange }) {
+  return (
+    <>
+      <p className="text-sm text-gray-600">
+        Showing <span className="font-semibold">{startIndex + 1}</span> to{' '}
+        <span className="font-semibold">{Math.min(endIndex, total)}</span> of {total}
+      </p>
+      <div className="flex gap-2">
+        <button
+          onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
+          disabled={currentPage === 1}
+          className="p-2 border rounded-md hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <div className="flex items-center gap-1">
+          {[...Array(totalPages)].map((_, index) => (
+            <button
+              key={index}
+              onClick={() => onPageChange(index + 1)}
+              className={`w-8 h-8 rounded-md text-sm transition-all ${
+                currentPage === index + 1 ? 'bg-[#9E3B3B] text-white shadow-sm' : 'hover:bg-white text-gray-600'
+              }`}
+            >
+              {index + 1}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="p-2 border rounded-md hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+    </>
+  );
+}
+
+// Stock status for display (Out of Stock / Low Stock / In Stock)
 function getStockStatus(stock) {
   if (stock === 0) return { text: 'Out of Stock', color: 'text-red-600', bg: 'bg-red-50' };
   if (stock < 20) return { text: 'Low Stock', color: 'text-amber-600', bg: 'bg-amber-50' };
@@ -16,17 +58,22 @@ function getStockStatus(stock) {
 }
 
 export default function ManageProducts() {
+  // Redux
   const dispatch = useDispatch();
   const { productsData, loading } = useSelector((state) => state.products);
-  const [modal, setModal] = useState(null); // { type: 'delete', id } | { type: 'update', product } | null
+
+  // Local state: modal (delete/update), filters, pagination
+  const [modal, setModal] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [stockFilter, setStockFilter] = useState('highToLow');
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Effects
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
 
+  // Filter, sort, paginate
   const filteredProducts = productsData?.filter((p) =>
     p.name?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
@@ -38,12 +85,12 @@ export default function ManageProducts() {
   const endIndex = startIndex + PRODUCTS_PER_PAGE;
   const currentProducts = sortedProducts.slice(startIndex, endIndex);
 
-  const setPageOne = () => setCurrentPage(1);
+  const goToPageOne = () => setCurrentPage(1);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9E3B3B]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9E3B3B]">Loading products...</div>
       </div>
     );
   }
@@ -71,7 +118,7 @@ export default function ManageProducts() {
 
         <ProductFilters
           searchTerm={searchTerm}
-          onSearchChange={(v) => { setSearchTerm(v); setPageOne(); }}
+          onSearchChange={(v) => { setSearchTerm(v); goToPageOne(); }}
           stockFilter={stockFilter}
           onStockFilterChange={setStockFilter}
         /> 
@@ -154,45 +201,14 @@ export default function ManageProducts() {
           </div>
 
           <div className="px-6 py-4 bg-[#FAF9F6] border-t border-gray-100 flex items-center justify-between">
-            <p className="text-sm text-gray-600">
-              Showing <span className="font-semibold">{startIndex + 1}</span> to{' '}
-              <span className="font-semibold">{Math.min(endIndex, sortedProducts.length)}</span> of{' '}
-              {sortedProducts.length}
-            </p>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="p-2 border rounded-md hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft size={20} />
-              </button>
-
-              <div className="flex items-center gap-1">
-                {[...Array(totalPages)].map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentPage(index + 1)}
-                    className={`w-8 h-8 rounded-md text-sm transition-all ${
-                      currentPage === index + 1
-                        ? 'bg-[#9E3B3B] text-white shadow-sm'
-                        : 'hover:bg-white text-gray-600'
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="p-2 border rounded-md hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight size={20} />
-              </button>
-            </div>
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              total={sortedProducts.length}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
 
@@ -245,43 +261,15 @@ export default function ManageProducts() {
             );
           })}
 
-          <div className="bg-white rounded-xl shadow-md border border-[#e5e5d1] p-4">
-            <p className="text-sm text-gray-600 text-center mb-3">
-              Showing {startIndex + 1} - {Math.min(endIndex, sortedProducts.length)} of {sortedProducts.length}
-            </p>
-            <div className="flex justify-center gap-2">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft size={20} />
-              </button>
-
-              <div className="flex items-center gap-1">
-                {[...Array(totalPages)].map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentPage(index + 1)}
-                    className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
-                      currentPage === index + 1
-                        ? 'bg-[#9E3B3B] text-white shadow-sm'
-                        : 'hover:bg-gray-100 text-gray-600'
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight size={20} />
-              </button>
-            </div>
+          <div className="bg-white rounded-xl shadow-md border border-[#e5e5d1] p-4 flex flex-col items-center gap-3">
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              total={sortedProducts.length}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
 

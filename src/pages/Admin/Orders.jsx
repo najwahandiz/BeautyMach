@@ -1,9 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { getOrders } from '../../features/orders/ordersAPI';
-import { 
-  Search, ChevronLeft, ChevronRight, ShoppingBag, 
-  Calendar, User, Hash, Download, Filter, MoreHorizontal 
-} from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { EmptyState } from '../../components/DashboardComponents';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
@@ -55,11 +52,11 @@ export default function Orders() {
   );
 
   return (
-    <div className="min-h-screen mt-1 p-4 sm:p-8 lg:p-12 bg-[#FDFBF9]">
+    <div className="min-h-screen mt-1 p-4 sm:p-4 lg:p-12 bg-[#f8f5f2]">
       <div className="max-w-7xl mx-auto">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div>
             <h1 className="text-4xl font-bold text-[#9E3B3B] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
               Historique des Commandes
@@ -153,7 +150,6 @@ export default function Orders() {
                       <Calendar className="w-3 h-3" />
                       {formatDate(order.createdAt)}
                     </div>
-                    <button className="text-xs font-bold text-[#9E3B3B] uppercase tracking-tighter">Détails</button>
                   </div>
                 </div>
               ))}

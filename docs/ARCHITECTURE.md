@@ -20,7 +20,7 @@ This document explains the project structure, data flow, and how to present or m
 ```
 src/
 ├── main.jsx              # Entry: Provider + ToastProvider + App
-├── App.jsx               # Router + routes; on mount loads user from localStorage
+├── App.jsx               # Router + routes; on mount loads quiz data from localStorage
 ├── app/
 │   └── store.js          # Redux store (products, user, cart)
 ├── routes/
@@ -31,9 +31,9 @@ src/
 │   │   ├── productsSlice.js   # State: productsData, loading, error, success
 │   │   ├── productsThunks.js # fetchProducts, createProduct, updateProduct, deleteProduct
 │   │   └── productsAPI.js    # Axios calls to MockAPI
-│   ├── user/             # User profile, quiz, recommendations
-│   │   ├── userSlice.js      # State: profile, quizResult, recommendations, loading, error
-│   │   ├── userThunks.js     # loginUser, loadUserFromStorage, logoutUser, saveQuizResultThunk, etc.
+│   ├── user/             # Quiz result, AI recommendations (no profile/login)
+│   │   ├── userSlice.js      # State: quizResult, recommendations, loading, error
+│   │   ├── userThunks.js     # loadUserFromStorage, saveQuizResultThunk, saveRecommendationsThunk, clearQuizDataThunk
 │   │   └── userAPI.js        # localStorage (no HTTP)
 │   ├── cart/
 │   │   ├── cartSlice.js      # State: items, totalQuantity, totalPrice, isOpen
@@ -43,13 +43,13 @@ src/
 │   └── orders/
 │       └── ordersAPI.js      # MockAPI for orders (no slice; used by Checkout & Admin Orders)
 ├── pages/
-│   ├── User/             # Home, Catalogue, ProductDetails, SkinQuiz, Recommendation, Profile, Checkout
+│   ├── User/             # Home, Catalogue, ProductDetails, SkinQuiz, Checkout
 │   └── Admin/            # AdminLogin, Dashboard, ManageProducts, addProduct, Orders
 ├── components/
 │   ├── layout/           # Navbar, Footer, AdminSidebar, HeroImageSlider
 │   ├── shop/             # ProductCard, ProductGrid, FiltersSidebar, SearchBar, SortSelect
 │   ├── cart/             # CartSidebar
-│   ├── quiz/             # QuizComponents (ProgressBar, QuestionCard, QuizButton)
+│   ├── quiz/             # QuizComponents + SkinQuiz (IntroScreen, QuizScreen, ResultsScreen, etc.)
 │   ├── Toast.jsx         # useToast() for success/error messages
 │   ├── PopUpUpdate.jsx   # Admin: edit product modal
 │   ├── popUpDelete.jsx   # Admin: delete product confirmation
@@ -59,6 +59,8 @@ src/
 │   └── aiRecommendation.js # AI recommendations (Gemini or local logic)
 ├── lib/
 │   └── aiPrompt.js       # Builds prompt for Gemini
+├── data/
+│   └── skinQuizData.js   # Quiz questions, skinTypeInfo, routineSteps
 └── utils/
     ├── adminAuth.js      # Admin login (localStorage session)
     └── analyzeQuizResult.js # Quiz answers → skinType, concerns, ageRange
@@ -94,7 +96,7 @@ src/
 
 ### Same pattern for other async actions
 
-- **User:** `dispatch(loginUser(profile))` → `userThunks.loginUser` → `userAPI.saveUser` (localStorage) → `userSlice` updates `profile`, `quizResult`, `recommendations`.
+- **User (quiz):** `dispatch(saveQuizResultThunk(...))` → `userThunks` → `userAPI.updateUser` (localStorage) → `userSlice` updates `quizResult`, `recommendations`.
 - **Cart:** No thunks. Components `dispatch(addToCart(...))` or `dispatch(removeFromCart(id))` → `cartSlice` reducers update `items` and call `cartUtils.saveCartToStorage`.
 - **Orders:** Checkout and Admin Orders call `ordersAPI.getOrders`, `createOrder`, `updateOrder` directly (no Redux orders slice). Checkout also calls `n8nService.sendOrderToN8n()`.
 
@@ -108,10 +110,8 @@ src/
 | **ProductDetails**     | cart               | addToCart, openCart                                       | —                                 |
 | **ProductCard** (shop)  | cart               | addToCart, openCart                                       | —                                 |
 | **CartSidebar**        | cart               | closeCart, clearCart, increaseQuantity, decreaseQuantity, removeFromCart | —                        |
-| **SkinQuiz**           | user               | saveQuizResultThunk, saveRecommendationsThunk, loginUser   | userAPI, aiRecommendation, aiPrompt |
-| **Recommendation**     | user               | (reads recommendations)                                   | —                                 |
-| **Profile**            | user, cart         | loginUser, logoutUser, updateUserProfileThunk, clearQuizDataThunk, addToCart, openCart | userAPI |
-| **Checkout**           | user, cart         | (reads profile, items); clearCart after success            | ordersAPI, n8nService             |
+| **SkinQuiz**           | user               | saveQuizResultThunk, saveRecommendationsThunk, clearQuizDataThunk | userAPI, aiRecommendation, aiPrompt |
+| **Checkout**           | cart               | (reads items); clearCart after success                     | ordersAPI, n8nService             |
 | **ManageProducts**     | products           | fetchProducts, deleteProduct, updateProduct                | productsAPI                       |
 | **PopUpUpdate**        | products           | updateProduct                                             | productsAPI.updateProduct         |
 | **popUpDelete**        | products           | deleteProduct                                             | productsAPI.deleteProduct         |
@@ -156,11 +156,11 @@ src/
 - **"Where is the cart?"**  
   Redux: `state.cart.items`. Persisted in `localStorage` via `cartUtils`; updated by `cartSlice` (addToCart, removeFromCart, etc.).
 
-- **"Where is the user profile?"**  
-  Redux: `state.user.profile`. Persisted in `localStorage` via `userAPI`; login/logout via `userThunks` and `userSlice`.
+- **"Where is the quiz result stored?"**  
+  Redux: `state.user.quizResult`. Persisted in `localStorage` via `userAPI`; no user profile or login.
 
 - **"How does checkout work?"**  
-  Checkout page reads cart and profile from Redux, calls `ordersAPI.createOrder`, then `n8nService.sendOrderToN8n`, then dispatches `clearCart()` and shows success.
+  Checkout page reads cart from Redux and form data, calls `ordersAPI.createOrder`, then `n8nService.sendOrderToN8n`, then dispatches `clearCart()` and shows success.
 
 - **"Where do I change the catalogue filters?"**  
   In `src/pages/User/Catalogue.jsx`, function `filterAndSortProducts(products, filters)`.

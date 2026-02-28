@@ -141,15 +141,7 @@ export default function AdminLogin() {
               )}
             </button>
           </form>
-
-          {/* Footer hint */}
-          <div className="px-8 pb-8">
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-              <p className="text-amber-800 text-sm text-center">
-                <strong>Demo credentials:</strong> {ADMIN_CREDENTIALS.username} / {ADMIN_CREDENTIALS.password}
-              </p>
-            </div>
-          </div>
+        
         </div>
 
         {/* Copyright */}

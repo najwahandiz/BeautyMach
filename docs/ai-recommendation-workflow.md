@@ -183,15 +183,15 @@ The `analyzeAnswers` function uses a **scoring system**:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                          DATA FLOW DIAGRAM                                   │
+│                          DATA FLOW DIAGRAM                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
+│                                                                             │
 │                         ┌─────────────┐                                     │
-│   USER CLICKS          │  SkinQuiz   │                                     │
-│   ANSWER OPTION   →    │   .jsx      │                                     │
+│   USER CLICKS          │  SkinQuiz   │                                      │
+│   ANSWER OPTION   →    │   .jsx      │                                      │
 │                         └──────┬──────┘                                     │
 │                                │                                            │
-│                                │ answers = [0, 2, 1, 3, 2]                 │
+│                                │ answers = [0, 2, 1, 3, 2]                  │
 │                                ↓                                            │
 │                         ┌──────────────────┐                                │
 │                         │ analyzeQuizResult │                               │
@@ -447,21 +447,30 @@ const recommendations = {
 src/
 ├── pages/
 │   └── User/
-│       └── SkinQuiz.jsx         ← Main quiz page (UI)
+│       └── SkinQuiz.jsx              ← Route entry: Redux, state, effects, handlers
+├── components/
+│   └── quiz/
+│       ├── QuizComponents.jsx        ← ProgressBar, QuestionCard, QuizButton
+│       └── SkinQuiz/                 ← UI-only subcomponents
+│           ├── IntroScreen.jsx
+│           ├── QuizScreen.jsx
+│           ├── LoadingScreen.jsx
+│           ├── ErrorScreen.jsx
+│           ├── ResultsScreen.jsx
+│           └── RecommendedProductCard.jsx
+├── data/
+│   └── skinQuizData.js               ← quizQuestions, skinTypeInfo, routineSteps
 ├── utils/
-│   └── analyzeQuizResult.js     ← Analyzes quiz answers
+│   └── analyzeQuizResult.js          ← Analyzes quiz answers
 ├── lib/
-│   └── aiPrompt.js              ← Builds AI instructions
+│   └── aiPrompt.js                   ← Builds AI instructions
 ├── services/
-│   └── aiRecommendation.js      ← Calls AI or smart matching
-├── features/
-│   └── user/
-│       ├── userSlice.js         ← Redux state definition
-│       ├── userThunks.js        ← Async actions (save/load)
-│       └── userAPI.js           ← localStorage operations
-└── components/
-    └── quiz/
-        └── QuizComponents.jsx   ← Reusable UI components
+│   └── aiRecommendation.js           ← Calls AI or smart matching
+└── features/
+    └── user/
+        ├── userSlice.js              ← Redux state definition
+        ├── userThunks.js             ← Async actions (save/load)
+        └── userAPI.js                ← localStorage operations
 ```
 
 ---
@@ -470,32 +479,28 @@ src/
 
 **Location:** `src/pages/User/SkinQuiz.jsx`
 
-**Role:** The main quiz page - this is what users see and interact with.
+**Role:** Route entry page and main container. Holds all logic; renders UI-only subcomponents.
 
 **What it does:**
-- Shows the quiz intro screen
-- Displays questions one by one
-- Collects user answers
-- Triggers the analysis when quiz is complete
-- Shows loading state while AI works
-- Displays the final recommendations
+- Handles Redux (dispatch, selectors for products, quiz result, recommendations)
+- Manages local state (viewMode, currentStep, answers, quizResult, recommendations, isLoading, error)
+- Runs effects (restore saved results, fetch products)
+- Defines handlers (handleStart, handleSelectAnswer, handleBack, handleNext, handleRestart)
+- Renders IntroScreen, QuizScreen, LoadingScreen, ErrorScreen, ResultsScreen based on viewMode
 
-**Data it receives:**
-- Products from Redux store (for AI to recommend from)
-- User login status (to save results)
+**Architecture:**
+- **SkinQuiz.jsx** = container (logic only)
+- **SkinQuiz/** subcomponents = presentational (receive props, no Redux/effects)
 
-**Data it produces:**
-- Array of answer indices (e.g., `[2, 0, 1, 3, 2]`)
-- Triggers analysis and AI recommendation
-
+**Key states:**
 ```javascript
-// Key states in SkinQuiz.jsx
+const [viewMode, setViewMode] = useState('intro');    // intro | quiz | results
 const [currentStep, setCurrentStep] = useState(-1);   // Which question we're on
-const [answers, setAnswers] = useState([...]);         // User's answers
-const [quizResult, setQuizResult] = useState(null);    // Analysis result
+const [answers, setAnswers] = useState([...]);        // User's answers
+const [quizResult, setQuizResult] = useState(null);   // Analysis result
 const [recommendations, setRecommendations] = useState(null); // AI recommendations
-const [isLoading, setIsLoading] = useState(false);     // Loading indicator
-const [error, setError] = useState(null);              // Error message
+const [isLoading, setIsLoading] = useState(false);    // Loading indicator
+const [error, setError] = useState(null);             // Error message
 ```
 
 ---
@@ -769,28 +774,38 @@ export function clearUser() {
 
 ---
 
-### 📄 QuizComponents.jsx
+### 📄 QuizComponents.jsx & SkinQuiz subcomponents
 
-**Location:** `src/components/quiz/QuizComponents.jsx`
+**Location:** `src/components/quiz/`
 
-**Role:** Reusable UI pieces for the quiz.
-
-**Components:**
+**QuizComponents.jsx** — Reusable UI pieces for the quiz:
 ```javascript
-// Progress bar showing quiz completion
 <ProgressBar currentStep={3} totalSteps={5} />
-
-// Answer option button
-<QuestionCard 
-  option="Tight and dry"
-  isSelected={true}
-  onSelect={() => handleAnswer(0)}
-/>
-
-// Navigation buttons
+<QuestionCard option="Tight and dry" isSelected={true} onSelect={() => handleAnswer(0)} />
 <QuizButton variant="primary">Next</QuizButton>
 <QuizButton variant="secondary">Back</QuizButton>
 ```
+
+**SkinQuiz/** — UI-only subcomponents (no logic, receive props from SkinQuiz.jsx):
+- **IntroScreen** — Intro text, features, Start button
+- **QuizScreen** — Question, options, Back/Next (uses QuizComponents)
+- **LoadingScreen** — Spinner and "Analyzing Your Skin..." message
+- **ErrorScreen** — Error message + Try Again button
+- **ResultsScreen** — Skin type, AI summary, routine cards (uses RecommendedProductCard)
+- **RecommendedProductCard** — One product with Add to Cart
+
+---
+
+### 📄 skinQuizData.js
+
+**Location:** `src/data/skinQuizData.js`
+
+**Role:** Static data for the quiz. Separates content from logic.
+
+**Exports:**
+- **quizQuestions** — Array of 5 questions with id, question, options
+- **skinTypeInfo** — Display info per skin type (title, emoji, color, gradient)
+- **routineSteps** — Labels for cleanser, serum, moisturizer, sunscreen (label, icon, step, description)
 
 ---
 
@@ -809,6 +824,7 @@ export function clearUser() {
 │  │  Location: Inside SkinQuiz.jsx component                  │   │
 │  │                                                           │   │
 │  │  What's stored:                                           │   │
+│  │  ├── viewMode (intro, quiz, results)                     │   │
 │  │  ├── currentStep (which question)                        │   │
 │  │  ├── answers (user's selections)                         │   │
 │  │  ├── isLoading (loading state)                           │   │
@@ -992,20 +1008,28 @@ User answers quiz  →  System detects skin type  →  AI picks products  →  U
 
 | File | Purpose |
 |------|---------|
-| `SkinQuiz.jsx` | Quiz UI & flow |
+| `SkinQuiz.jsx` | Route entry; Redux, state, effects, handlers; renders subcomponents |
+| `SkinQuiz/IntroScreen.jsx` | Intro + Start button |
+| `SkinQuiz/QuizScreen.jsx` | Questions, answers, Back/Next |
+| `SkinQuiz/LoadingScreen.jsx` | Loading state |
+| `SkinQuiz/ErrorScreen.jsx` | Error + Try Again |
+| `SkinQuiz/ResultsScreen.jsx` | Skin type, AI summary, routine |
+| `SkinQuiz/RecommendedProductCard.jsx` | Product card with Add to Cart |
+| `skinQuizData.js` | quizQuestions, skinTypeInfo, routineSteps |
 | `analyzeQuizResult.js` | Analyze answers → skin type |
 | `aiPrompt.js` | Build AI instructions |
 | `aiRecommendation.js` | Call AI or smart match |
 | `userSlice.js` | Redux state structure |
 | `userThunks.js` | Async save/load operations |
 | `userAPI.js` | localStorage operations |
-| `QuizComponents.jsx` | Reusable UI components |
+| `QuizComponents.jsx` | ProgressBar, QuestionCard, QuizButton |
 
 ### How to Add a New Question
 
-1. Add question to `quizQuestions` array in `SkinQuiz.jsx`
+1. Add question to `quizQuestions` array in `src/data/skinQuizData.js`
 2. Update scoring logic in `analyzeQuizResult.js`
-3. That's it! The rest adapts automatically.
+3. Update the `Array(quizQuestions.length)` in SkinQuiz.jsx if needed
+4. The rest adapts automatically.
 
 ### How to Enable Google Gemini AI
 

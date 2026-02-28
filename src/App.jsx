@@ -9,7 +9,6 @@ import Home from './pages/User/Home'
 import Catalogue from './pages/User/Catalogue'
 import ProductDetails from './pages/User/ProductDetails'
 import SkinQuiz from './pages/User/SkinQuiz'
-import Profile from './pages/User/Profile'
 import Checkout from './pages/User/Checkout'
 import UserRoutes from './routes/UserRoutes'
 
@@ -42,7 +41,6 @@ function App() {
           <Route path='/catalogue' element={<Catalogue/>} />
           <Route path='/products/:id' element={<ProductDetails/>} />
           <Route path='/skin-quiz' element={<SkinQuiz/>} />
-          <Route path='/profile' element={<Profile/>} />
           <Route path='/checkout' element={<Checkout/>} />
         </Route>
 

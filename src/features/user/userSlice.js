@@ -1,43 +1,25 @@
 /**
  * userSlice.js
- * 
- * Redux slice for managing user state.
- * 
+ *
+ * Redux slice for quiz results and AI recommendations.
+ * Stored in localStorage via userAPI (no user profile/login).
+ *
  * STATE STRUCTURE:
  * {
- *   isLoggedIn: boolean,      // Is user logged in?
- *   profile: {                // User's basic info
- *     name: string,
- *     email: string,
- *     ageRange: string
- *   },
- *   quizResult: {             // Skin quiz results
- *     skinType: string,
- *     concerns: array,
- *     ageRange: string
- *   },
- *   recommendations: {        // AI recommendations
- *     routine: object,
- *     summary: string
- *   }
+ *   quizResult: { skinType, concerns, ageRange },
+ *   recommendations: { routine, summary }
  * }
  */
 
 import { createSlice } from '@reduxjs/toolkit';
 import {
-  loginUser,
   loadUserFromStorage,
-  logoutUser,
   saveQuizResultThunk,
   saveRecommendationsThunk,
-  updateUserProfileThunk,
   clearQuizDataThunk,
 } from './userThunks';
 
-// Initial state - what we start with
 const initialState = {
-  isLoggedIn: false,
-  profile: null,
   quizResult: null,
   recommendations: null,
   loading: false,
@@ -49,17 +31,7 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   
-  // Regular reducers - for synchronous actions
   reducers: {
-    /**
-     * Set user profile
-     * Usage: dispatch(setUserProfile({ name: 'John', email: 'john@example.com' }))
-     */
-    setUserProfile: (state, action) => {
-      state.profile = action.payload;
-      state.isLoggedIn = true;
-    },
-
     /**
      * Set quiz result
      * Usage: dispatch(setQuizResult({ skinType: 'oily', concerns: ['acne'] }))
@@ -77,17 +49,6 @@ const userSlice = createSlice({
     },
 
     /**
-     * Logout user - clear all data
-     * Usage: dispatch(logout())
-     */
-    logout: (state) => {
-      state.isLoggedIn = false;
-      state.profile = null;
-      state.quizResult = null;
-      state.recommendations = null;
-    },
-
-    /**
      * Clear error
      */
     clearError: (state) => {
@@ -98,46 +59,19 @@ const userSlice = createSlice({
   // Extra reducers - for async thunks
   extraReducers: (builder) => {
     builder
-      // ===== LOGIN USER =====
-      .addCase(loginUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.isLoggedIn = true;
-        state.profile = action.payload.profile;
-        state.quizResult = action.payload.quizResult || null;
-        state.recommendations = action.payload.recommendations || null;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      // ===== LOAD USER FROM STORAGE =====
+      // ===== LOAD QUIZ DATA FROM STORAGE =====
       .addCase(loadUserFromStorage.pending, (state) => {
         state.loading = true;
       })
       .addCase(loadUserFromStorage.fulfilled, (state, action) => {
         state.loading = false;
         if (action.payload) {
-          state.isLoggedIn = true;
-          state.profile = action.payload.profile;
           state.quizResult = action.payload.quizResult || null;
           state.recommendations = action.payload.recommendations || null;
         }
       })
       .addCase(loadUserFromStorage.rejected, (state) => {
         state.loading = false;
-      })
-
-      // ===== LOGOUT USER =====
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.isLoggedIn = false;
-        state.profile = null;
-        state.quizResult = null;
-        state.recommendations = null;
       })
 
       // ===== SAVE QUIZ RESULT =====
@@ -154,41 +88,18 @@ const userSlice = createSlice({
       .addCase(clearQuizDataThunk.fulfilled, (state) => {
         state.quizResult = null;
         state.recommendations = null;
-      })
-
-      // ===== UPDATE USER PROFILE =====
-      .addCase(updateUserProfileThunk.fulfilled, (state, action) => {
-        state.profile = action.payload;
       });
   }
 });
 
 // Export actions
-export const { 
-  setUserProfile, 
-  setQuizResult, 
-  setRecommendations, 
-  logout,
-  clearError 
-} = userSlice.actions;
+export const { setQuizResult, setRecommendations, clearError } = userSlice.actions;
 
 // Export reducer
 export default userSlice.reducer;
 
 // ===== SELECTORS =====
 // These help components access state easily
-
-/**
- * Get isLoggedIn status
- * Usage: const isLoggedIn = useSelector(selectIsLoggedIn);
- */
-export const selectIsLoggedIn = (state) => state.user.isLoggedIn;
-
-/**
- * Get user profile
- * Usage: const profile = useSelector(selectUserProfile);
- */
-export const selectUserProfile = (state) => state.user.profile;
 
 /**
  * Get quiz result

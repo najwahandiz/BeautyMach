@@ -1,4 +1,5 @@
-// Checkout: shipping form, order summary, confirm → create order + n8n, then clear cart.
+// Checkout page: shipping form, order summary, order confirmation.
+// Flow: fill form → confirm → create order → send to n8n → clear cart → show success.
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -9,13 +10,13 @@ import { createOrder } from '../../features/orders/ordersAPI';
 import { sendOrderToN8n } from '../../services/n8nService';
 import { useToast } from '../../components/Toast';
 
+// Reusable form field with label and error display
 function FormField({ name, label, type = 'text', error, value, onChange, placeholder, required = true }) {
-  const hasError = !!error;
   return (
     <div>
-    <label htmlFor={name} className="block text-[10px] font-bold uppercase tracking-[0.4em] text-gray-900 ml-1">  
-       {label} {required && <span className="text-[#9E3B3B] opacity-50">*</span>}
-    </label>
+      <label htmlFor={name} className="block text-[10px] font-bold uppercase tracking-[0.4em] text-gray-900 ml-1">
+        {label} {required && <span className="text-[#9E3B3B] opacity-50">*</span>}
+      </label>
       <input
         type={type}
         id={name}
@@ -24,29 +25,29 @@ function FormField({ name, label, type = 'text', error, value, onChange, placeho
         onChange={onChange}
         placeholder={placeholder}
         className={`w-full py-4 px-5 rounded-2xl bg-white border transition-all duration-500 outline-none text-sm font-light placeholder:text-stone-300
-          ${error 
-            ? 'border-red-200 focus:border-[#9E3B3B]' 
-            : 'border-stone-300 focus:border-[#9E3B3B] focus:ring-4 focus:ring-[#9E3B3B]/5'
-          }`}
+          ${error ? 'border-red-200 focus:border-[#9E3B3B]' : 'border-stone-300 focus:border-[#9E3B3B] focus:ring-4 focus:ring-[#9E3B3B]/5'}`}
       />
-    
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
 }
 
 export default function Checkout() {
+  // Redux & routing
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const cartItems = useSelector(selectCartItems);
   const subtotal = useSelector(selectCartTotal);
-  const total = subtotal + 0;
+  const total = subtotal;
+
+  // Local state
   const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', city: '', message: '' });
   const [errors, setErrors] = useState({});
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Handlers
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -194,10 +195,10 @@ export default function Checkout() {
               Continue Shopping
             </button>
             <button
-              onClick={() => navigate('/profile')}
+              onClick={() => navigate('/skin-quiz')}
               className="px-8 py-3 bg-gradient-to-r from-[#9E3B3B] to-[#b54949] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
-              View Profile
+              Take Skin Quiz
             </button>
           </div>
         </div>
@@ -299,6 +300,24 @@ export default function Checkout() {
                 </div>
               </form>
             </div>
+            <button
+                type="button"
+                onClick={handleConfirmOrder}
+                disabled={isSubmitting}
+                className="w-full flex items-center mt-8 justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#9E3B3B] to-[#b54949] text-white text-lg font-semibold rounded-2xl shadow-xl shadow-[#9E3B3B]/25 hover:shadow-2xl hover:shadow-[#9E3B3B]/30 hover:-translate-y-0.5 transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Processing…
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-5 h-5" />
+                    Confirm Order
+                  </>
+                )}
+              </button>
           </div>
           
           {/* RIGHT: Order Summary */}
@@ -366,29 +385,7 @@ export default function Checkout() {
                   <span>Total</span>
                   <span className="text-[#9E3B3B]">${total.toFixed(2)}</span>
                 </div>
-              </div>
-                  
-             
-              
-              {/* Confirm Order Button */}
-              <button
-                type="button"
-                onClick={handleConfirmOrder}
-                disabled={isSubmitting}
-                className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#9E3B3B] to-[#b54949] text-white text-lg font-semibold rounded-2xl shadow-xl shadow-[#9E3B3B]/25 hover:shadow-2xl hover:shadow-[#9E3B3B]/30 hover:-translate-y-0.5 transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Processing…
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-5 h-5" />
-                    Confirm Order
-                  </>
-                )}
-              </button>
+              </div>      
             </div>
           </div>
         </div>

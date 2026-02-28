@@ -1,49 +1,33 @@
 /**
  * Navbar.jsx
  *
- * User profile (Redux) and admin session are separate:
- * - Profile / Sign in = user state (Redux, beautymatch_user).
- * - Admin Dashboard / Admin Login = admin session only (adminAuth); not tied to user profile.
+ * Cart and admin session. Admin uses its own login (adminAuth).
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import {
-  User,
   ShoppingBag,
   Sparkles,
   Menu,
   X,
-  LogOut,
-  Heart,
-  ChevronDown,
   LayoutDashboard
 } from 'lucide-react';
-import { selectIsLoggedIn, selectUserProfile } from '../../features/user/userSlice';
-import { logoutUser } from '../../features/user/userThunks';
 import { openCart } from '../../features/cart/cartSlice';
 import { selectCartQuantity } from '../../features/cart/cartSelectors';
 import { isAdminLoggedIn } from '../../utils/adminAuth';
 
 export default function Navbar() {
+  // Redux
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const isLoggedIn = useSelector(selectIsLoggedIn);
-  const profile = useSelector(selectUserProfile);
   const cartQuantity = useSelector(selectCartQuantity);
 
+  // Local state
   const [isAdmin, setIsAdmin] = useState(false);
-  
-  // Mobile menu state
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  // Profile dropdown state
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  
-  // Ref for dropdown to detect outside clicks
-  const dropdownRef = useRef(null);
 
+  // Effects: sync admin status when storage changes (e.g. login in another tab)
   useEffect(() => {
     const checkAdmin = () => setIsAdmin(isAdminLoggedIn());
     checkAdmin();
@@ -51,25 +35,7 @@ export default function Navbar() {
     return () => window.removeEventListener('storage', checkAdmin);
   }, []);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsProfileOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Handle user logout (from Redux)
-  const handleLogout = () => {
-    dispatch(logoutUser());
-    setIsProfileOpen(false);
-    navigate('/');
-  };
-
-  // Handle cart open
+  // Handlers
   const handleOpenCart = () => {
     dispatch(openCart());
   };
@@ -156,133 +122,7 @@ export default function Navbar() {
               )}
             </button>
 
-            {/* Profile Button / Dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className={`
-                  flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200
-                  ${isProfileOpen 
-                    ? 'bg-[#9E3B3B]/10 text-[#9E3B3B]' 
-                    : 'hover:bg-[#9E3B3B]/5 text-gray-600 hover:text-[#9E3B3B]'
-                  }
-                `}
-              >
-                {isLoggedIn ? (
-                  <>
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] flex items-center justify-center text-white font-semibold text-sm">
-                      {profile?.name?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                    <span className="text-sm font-medium max-w-[100px] truncate">
-                      {profile?.name || 'User'}
-                    </span>
-                    <ChevronDown 
-                      size={16} 
-                      className={`transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} 
-                    />
-                  </>
-                ) : (
-                  <>
-                    <User size={20} />
-                    <span className="text-sm font-medium">Sign In</span>
-                  </>
-                )}
-              </button>
-
-              {/* Dropdown Menu */}
-              {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 animate-fadeIn overflow-hidden">
-                  {isLoggedIn ? (
-                    <>
-                      {/* User info header */}
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="font-semibold text-gray-800">{profile?.name}</p>
-                        <p className="text-sm text-gray-500">{profile?.email || 'Beauty enthusiast'}</p>
-                      </div>
-                      
-                      {/* Menu items */}
-                      <div className="py-2">
-                        <Link
-                          to="/profile"
-                          onClick={() => setIsProfileOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-[#9E3B3B]/5 hover:text-[#9E3B3B] transition-colors"
-                        >
-                          <User size={18} />
-                          <span>My Profile</span>
-                        </Link>
-                        
-                        <Link
-                          to="/skin-quiz"
-                          onClick={() => setIsProfileOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-[#9E3B3B]/5 hover:text-[#9E3B3B] transition-colors"
-                        >
-                          <Sparkles size={18} />
-                          <span>My Skin Analysis</span>
-                        </Link>
-                        
-                        
-                      </div>
-                      
-                      {/* Admin Dashboard Link - ONLY if admin is logged in */}
-                      {isAdmin && (
-                        <div className="border-t border-gray-100 py-2">
-                          <Link
-                            to="/Dashboard"
-                            onClick={() => setIsProfileOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors"
-                          >
-                            <LayoutDashboard size={18} />
-                            <span className="font-medium">Admin Dashboard</span>
-                          </Link>
-                        </div>
-                      )}
-                      
-                      {/* Logout */}
-                      <div className="border-t border-gray-100 pt-2">
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
-                        >
-                          <LogOut size={18} />
-                          <span>Sign Out</span>
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      {/* Sign in prompt */}
-                      <div className="px-4 py-3 text-center">
-                        <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-[#9E3B3B]/10 to-[#ea7b7b]/10 flex items-center justify-center">
-                          <User size={24} className="text-[#9E3B3B]" />
-                        </div>
-                        <p className="text-gray-800 font-medium mb-1">Welcome to BeautyMatch</p>
-                        <p className="text-sm text-gray-500 mb-4">Sign in to access your profile</p>
-                        
-                        <Link
-                          to="/profile"
-                          onClick={() => setIsProfileOpen(false)}
-                          className="block w-full py-2.5 bg-gradient-to-r from-[#9E3B3B] to-[#b54949] text-white font-medium rounded-xl hover:shadow-lg hover:shadow-[#9E3B3B]/25 transition-all"
-                        >
-                          Sign In / Create Profile
-                        </Link>
-                      </div>
-                      
-                      {/* Admin Login Link - for guests to access admin */}
-                      <div className="border-t border-gray-100 py-2">
-                        <Link
-                          to="/admin-login"
-                          onClick={() => setIsProfileOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-colors"
-                        >
-                          <LayoutDashboard size={18} />
-                          <span>Admin Login</span>
-                        </Link>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
+            
           </div>
 
           {/* ===== MOBILE MENU BUTTON ===== */}
@@ -320,20 +160,6 @@ export default function Navbar() {
       {isMobileOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 animate-slideDown">
           <div className="px-4 py-4 space-y-1">
-            
-            {/* User info (if logged in) */}
-            {isLoggedIn && (
-              <div className="flex items-center gap-3 px-3 py-3 mb-3 bg-gradient-to-r from-[#9E3B3B]/5 to-[#ea7b7b]/5 rounded-xl">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#9E3B3B] to-[#ea7b7b] flex items-center justify-center text-white font-semibold">
-                  {profile?.name?.charAt(0).toUpperCase() || 'U'}
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800">{profile?.name}</p>
-                  <p className="text-sm text-gray-500">View Profile</p>
-                </div>
-              </div>
-            )}
-
             {/* Navigation Links */}
             <NavLink 
               to="/" 
@@ -369,19 +195,7 @@ export default function Navbar() {
               Skin Quiz
             </NavLink>
 
-            <NavLink 
-              to="/profile" 
-              onClick={closeMobile}
-              className={({ isActive }) => `
-                flex items-center gap-2 px-3 py-3 rounded-xl font-medium transition-colors
-                ${isActive ? 'bg-[#9E3B3B]/10 text-[#9E3B3B]' : 'text-gray-700 hover:bg-gray-50'}
-              `}
-            >
-              <User size={18} />
-              {isLoggedIn ? 'My Profile' : 'Sign In'}
-            </NavLink>
-
-            {/* Admin Dashboard Link - ONLY if admin is logged in */}
+            {/* Admin Dashboard Link */}
             {isAdmin && (
               <NavLink 
                 to="/Dashboard" 
@@ -406,22 +220,6 @@ export default function Navbar() {
                 <LayoutDashboard size={18} />
                 Admin Login
               </NavLink>
-            )}
-
-            {/* Logout Button */}
-            {isLoggedIn && (
-              <div className="pt-3 mt-3 border-t border-gray-100">
-                <button 
-                  onClick={() => {
-                    handleLogout();
-                    closeMobile();
-                  }}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 transition-colors"
-                >
-                  <LogOut size={18} />
-                  Sign Out
-                </button>
-              </div>
             )}
           </div>
         </div>

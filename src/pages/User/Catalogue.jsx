@@ -34,11 +34,15 @@ function filterAndSortProducts(products, filters) {
 const initialFilters = { search: '', sort: 'default', categories: [], skinTypes: [] };
 
 export default function Catalogue() {
+  // Redux
   const dispatch = useDispatch();
   const { productsData, loading, error } = useSelector((state) => state.products);
+
+  // Local state: filter drawer (mobile), filter values
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState(initialFilters);
 
+  // Effects
   useEffect(() => {
     if (!productsData?.length) dispatch(fetchProducts());
   }, [dispatch, productsData]);

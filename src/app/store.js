@@ -15,7 +15,7 @@ export const store = configureStore({
     // Products state - manages product data
     products: productsReducer,
     
-    // User state - manages user profile, quiz results, recommendations
+    // User state - quiz results and AI recommendations
     user: userReducer,
     
     // Cart state - manages shopping cart

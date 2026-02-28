@@ -55,7 +55,6 @@ src/
 | **Home** | Dispatches `fetchProducts()` if no data; reads `productsData` to show best sellers. |
 | **ProductDetails** | Reads `productsData`, finds product by `id` from URL. |
 | **SkinQuiz** | Dispatches `fetchProducts()`; uses `productsData` to get full product details for recommended items. |
-| **Profile** | Reads `productsData` to show product info for saved recommendations. |
 | **ManageProducts** | Dispatches `fetchProducts()`, `deleteProduct()`, `updateProduct()`; uses PopUpUpdate/popUpDelete. |
 | **addProduct** | Dispatches `createProduct(newProduct)`. |
 | **Redux slice** | `products` slice in store; updated by thunks (pending/fulfilled/rejected). |
@@ -221,7 +220,7 @@ Think of products as a **shared list in a central cabinet (Redux)**. When you op
 
 ## 2.1 Overview
 
-The **User** feature handles the **shopper’s profile** (name, email, age range), **skin quiz result** (skin type, concerns, age range), and **AI recommendations** (routine + summary). There is **no real backend**: everything is stored in **localStorage** via `userAPI.js`. So “login” and “logout” are really “save/load/clear this data in the browser.”
+The **User** feature handles the **shopper’s **skin quiz result** (skin type, concerns, age range), and **AI recommendations** (routine + summary). There is **no real backend**: everything is stored in **localStorage** via `userAPI.js`. So “login” and “logout” are really “save/load/clear this data in the browser.”
 
 **In simple words:** When you “sign in” or “create profile,” we save your name and email (and any quiz/recommendations you already have) in the browser. When you take the quiz, we save the result and recommendations. When you come back later, we load that from the browser and put it in Redux so the app “remembers” you.
 
@@ -233,13 +232,24 @@ The **User** feature handles the **shopper’s profile** (name, email, age range
 src/
 ├── features/
 │   └── user/
-│       ├── userSlice.js      # State: isLoggedIn, profile, quizResult, recommendations, loading, error
-│       ├── userThunks.js     # loginUser, loadUserFromStorage, logoutUser, saveQuizResultThunk, etc.
-│       └── userAPI.js        # localStorage: saveUser, loadUser, clearUser, updateUser, anonymous quiz
+│       ├── userSlice.js      # State: quizResult, recommendations, loading, error
+│       ├── userThunks.js     # loadUserFromStorage, saveQuizResultThunk, saveRecommendationsThunk, clearQuizDataThunk
+│       └── userAPI.js        # localStorage: saveUser, loadUser, updateUser
 ├── pages/
 │   └── User/
-│       ├── Profile.jsx       # Login form or profile + recommendations; uses user slice + cart
-│       └── SkinQuiz.jsx      # Quiz flow; saves quiz + recommendations via thunks
+│       └── SkinQuiz.jsx      # Route entry: Redux, state, effects, handlers; renders UI subcomponents
+├── components/
+│   └── quiz/
+│       ├── QuizComponents.jsx       # ProgressBar, QuestionCard, QuizButton
+│       └── SkinQuiz/                # UI-only subcomponents
+│           ├── IntroScreen.jsx      # Intro + Start button
+│           ├── QuizScreen.jsx       # Questions, answers, navigation
+│           ├── LoadingScreen.jsx    # Loading state
+│           ├── ErrorScreen.jsx      # Error message + Try Again
+│           ├── ResultsScreen.jsx    # Skin type, AI summary, routine
+│           └── RecommendedProductCard.jsx  # Product card with Add to Cart
+├── data/
+│   └── skinQuizData.js      # quizQuestions, skinTypeInfo, routineSteps
 ├── App.jsx                   # On mount: dispatch(loadUserFromStorage())
 ```
 
@@ -247,17 +257,16 @@ src/
 
 ## 2.3 Architecture Relation
 
-- **App.jsx** — On mount dispatches `loadUserFromStorage()` so that if the user had a session, Redux is filled from localStorage.
-- **Profile.jsx** — Reads `isLoggedIn`, `profile`, `quizResult`, `recommendations`; dispatches `loginUser`, `logoutUser`, `updateUserProfileThunk`, `clearQuizDataThunk`; can add to cart and open cart.
-- **SkinQuiz.jsx** — Reads saved `quizResult` and `recommendations` to show results without retaking; dispatches `saveQuizResultThunk`, `saveRecommendationsThunk`, `clearQuizDataThunk`; if not logged in, uses `saveAnonymousQuiz` so that when they later create a profile, quiz data can be merged.
-- **Navbar** — Reads `isLoggedIn`, `profile`; dispatches `logoutUser` on Sign Out.
-- **Checkout** — Reads profile only for display (e.g. prefill); order is created from form + cart, not from Redux user.
+- **App.jsx** — On mount dispatches `loadUserFromStorage()` so that saved quiz data is restored from localStorage to Redux.
+- **SkinQuiz.jsx** — Route entry page; holds all logic (Redux, state, effects, handlers). Reads saved `quizResult` and `recommendations`; dispatches `saveQuizResultThunk`, `saveRecommendationsThunk`, `clearQuizDataThunk`. Renders IntroScreen, QuizScreen, LoadingScreen, ErrorScreen, ResultsScreen based on viewMode.
+- **Navbar** — Cart icon and Admin link only; no user profile or login UI.
+- **Checkout** — Reads cart and form data only; order is created from form + cart.
 
 ---
 
 ## 2.4 Data Flow
 
-**App load (restore session):**
+**App load (restore quiz data):**
 
 ```
 App mounts
@@ -266,27 +275,11 @@ useEffect → dispatch(loadUserFromStorage())
    ↓
 userThunks.loadUserFromStorage: calls userAPI.loadUser() (localStorage)
    ↓
-loadUserFromStorage.fulfilled → userSlice sets isLoggedIn, profile, quizResult, recommendations
+loadUserFromStorage.fulfilled → userSlice sets quizResult, recommendations
    ↓
-Navbar, Profile, etc. useSelector(selectIsLoggedIn / selectUserProfile / …) get new state
+SkinQuiz useSelector(selectQuizResult, selectRecommendations) gets state
    ↓
-UI re-renders (e.g. “Hello, John” in navbar)
-```
-
-**Login (create profile):**
-
-```
-User submits name/email on Profile
-   ↓
-dispatch(loginUser({ name, email }))
-   ↓
-loginUser thunk: getState() for current quizResult/recommendations (or loadAnonymousQuiz)
-   ↓
-Build userData = { profile, quizResult, recommendations }; userAPI.saveUser(userData)
-   ↓
-loginUser.fulfilled → userSlice sets isLoggedIn, profile, quizResult, recommendations
-   ↓
-Profile (and Navbar) re-render with logged-in state
+If saved data exists, results view is shown
 ```
 
 **Save quiz result (after quiz completes):**
@@ -294,13 +287,13 @@ Profile (and Navbar) re-render with logged-in state
 ```
 SkinQuiz: analyzeAnswers(answers) → result; getRecommendations(result, products) → recs
    ↓
-If logged in: dispatch(saveQuizResultThunk(result)), dispatch(saveRecommendationsThunk(recs))
+dispatch(saveQuizResultThunk(result)), dispatch(saveRecommendationsThunk(recs))
    ↓
 Thunks call userAPI.updateUser({ quizResult }) / updateUser({ recommendations })
    ↓
 saveQuizResultThunk.fulfilled / saveRecommendationsThunk.fulfilled → userSlice updates state
    ↓
-If not logged in: saveAnonymousQuiz({ quizResult, recommendations }) so loginUser can merge later
+Data persists in localStorage
 ```
 
 ---
@@ -311,8 +304,6 @@ If not logged in: saveAnonymousQuiz({ quizResult, recommendations }) so loginUse
 
 ```javascript
 {
-  isLoggedIn: false,
-  profile: null,           // { name, email, ageRange, createdAt }
   quizResult: null,        // { skinType, concerns, ageRange }
   recommendations: null,   // { routine: { cleanser, serum, moisturizer, sunscreen }, summary }
   loading: false,
@@ -321,10 +312,10 @@ If not logged in: saveAnonymousQuiz({ quizResult, recommendations }) so loginUse
 ```
 
 **Reducers:**  
-`setUserProfile`, `setQuizResult`, `setRecommendations`, `logout` (reset all), `clearError`. Used for direct sync updates if needed.
+`setQuizResult`, `setRecommendations`, `clearError`. Used for direct sync updates if needed.
 
 **ExtraReducers:**  
-Handle all thunks: `loginUser`, `loadUserFromStorage`, `logoutUser`, `saveQuizResultThunk`, `saveRecommendationsThunk`, `clearQuizDataThunk`, `updateUserProfileThunk`. On fulfilled they set the corresponding state; on rejected they set `error`. So the “source of truth” after any async action is the slice.
+Handle thunks: `loadUserFromStorage`, `saveQuizResultThunk`, `saveRecommendationsThunk`, `clearQuizDataThunk`. On fulfilled they set the corresponding state; on rejected they set `error`. So the “source of truth” after any async action is the slice.
 
 ---
 
@@ -332,13 +323,9 @@ Handle all thunks: `loginUser`, `loadUserFromStorage`, `logoutUser`, `saveQuizRe
 
 Defined in `userSlice.js`:
 
-- **selectIsLoggedIn** — `state.user.isLoggedIn`
-- **selectUserProfile** — `state.user.profile`
 - **selectQuizResult** — `state.user.quizResult`
 - **selectRecommendations** — `state.user.recommendations`
 - **selectUserLoading** — `state.user.loading`
-
-Using these instead of `state.user.xxx` keeps components decoupled from the exact state shape and makes refactors easier.
 
 ---
 
@@ -346,57 +333,40 @@ Using these instead of `state.user.xxx` keeps components decoupled from the exac
 
 - **saveUser(userData)** — `localStorage.setItem(STORAGE_KEY, JSON.stringify(userData))`.
 - **loadUser()** — `localStorage.getItem(STORAGE_KEY)` → parse JSON or null.
-- **clearUser()** — `localStorage.removeItem(STORAGE_KEY)` (logout).
-- **updateUser(updates)** — Load existing, merge `updates`, save back (for quiz/recommendations or profile update).
-- **saveAnonymousQuiz / loadAnonymousQuiz / clearAnonymousQuiz** — Same idea with `ANONYMOUS_QUIZ_KEY` so quiz taken before signup can be attached on first login.
+- **updateUser(updates)** — Load existing, merge `updates`, save back (for quiz result and recommendations).
 
 No HTTP; all sync. Thunks are still async so we keep the same Redux pattern (pending/fulfilled/rejected).
 
 ---
 
-## 2.8 Component Breakdown (Profile.jsx — summary)
+## 2.8 Logic Explanation
 
-- **LoginForm** — Local state: `formData` (name, email). On submit calls `onLogin(formData)` which is `dispatch(loginUser(formData))`.
-- **Profile (main):**  
-  Selectors: `isLoggedIn`, `profile`, `quizResult`, `recommendations`; also `productsData` for recommendation product details.  
-  Local state: `isEditing`, `editedProfile`.  
-  If not logged in: render LoginForm. If logged in: profile card, quiz result card, recommendations grid (ProductRecommendationCard with Add to Cart), edit profile, logout, “Get New Recommendations” (navigate to skin quiz).  
-  Add to Cart dispatches `addToCart` + `openCart` and uses cart selectors for “In Cart” state.
+- **Page load:** App runs `loadUserFromStorage`. If there is quiz data in localStorage, Redux gets quizResult and recommendations.
+- **User takes quiz:** At the end, quiz result and recommendations are saved to Redux and localStorage. Results screen shows routine, "Shop Products" and "Retake Quiz" buttons.
+- **User clicks "Retake Quiz":** `clearQuizDataThunk` clears quiz data from Redux and localStorage; local state resets so the quiz starts over.
 
 ---
 
-## 2.9 Logic Explanation
+## 2.9 State Management
 
-- **Page load:** App runs `loadUserFromStorage`. If there is data in localStorage, Redux gets profile + quiz + recommendations and the user appears logged in.
-- **User creates profile:** Form submit → `loginUser`. Data is saved to localStorage and Redux; UI switches to profile view. If they had done the quiz as guest, that data is merged from anonymous storage and then cleared there.
-- **User takes quiz:** At the end, quiz result and recommendations are saved (Redux + localStorage if logged in, or anonymous storage if not). Results screen shows routine and “saved to profile” if logged in.
-- **User logs out:** `logoutUser` clears localStorage and Redux user state; navbar and profile show “Sign In” again.
+- **Redux:** One place for quiz result and recommendations so SkinQuiz can read and update them.
+- **localStorage:** Persistence so that closing the browser doesn't lose the quiz results.
 
 ---
 
-## 2.10 State Management
+## 2.10 Simplified Mental Model
 
-- **Redux for user:** One place for “who is logged in and what do we know about them” so Navbar, Profile, SkinQuiz, and Checkout can all read the same data.
-- **localStorage:** Persistence so that closing the browser doesn’t lose the profile or quiz. We don’t put “sidebar open” in localStorage because that’s ephemeral UI.
-
----
-
-## 2.11 Simplified Mental Model
-
-User data is a **notebook** (localStorage) and a **whiteboard** (Redux). When the app starts, we copy from the notebook to the whiteboard. When the user logs in, takes the quiz, or updates profile, we update both the whiteboard and the notebook. When they log out, we erase both. Everyone in the app looks at the whiteboard to know who’s there and what their skin type and recommendations are.
+Quiz data is a **notebook** (localStorage) and a **whiteboard** (Redux). When the app starts, we copy from the notebook to the whiteboard. When the user takes or retakes the quiz, we update both. Everyone who needs quiz data (SkinQuiz) looks at the whiteboard.
 
 ---
 
-## 2.12 Possible Jury Questions
+## 2.11 Possible Jury Questions
 
-- **Where is the user profile stored?**  
-  In Redux (`state.user.profile`) and in localStorage under key `beautymatch_user`. No server.
+- **Where is the quiz result stored?**  
+  In Redux (`state.user.quizResult`) and in localStorage under key `beautymatch_user`. No server.
 
-- **How does “login” work without a backend?**  
-  “Login” is saving an object `{ profile, quizResult, recommendations }` to localStorage and then putting it in Redux. There is no password or token; it’s a demo.
-
-- **What is the anonymous quiz key for?**  
-  If the user takes the quiz before creating a profile, we store the result in `beautymatch_anonymous_quiz`. When they later create a profile, `loginUser` merges that into the main user object and clears the anonymous key so we don’t lose their quiz.
+- **Is there user login or profile?**  
+  No. The app has no user authentication or profile. Only quiz results and recommendations are persisted.
 
 ---
 
@@ -464,7 +434,7 @@ Components using selectCartItems / selectCartQuantity re-render (sidebar, badge)
 - **selectIsInCart(state, productId)** — whether that product is in items
 - **selectItemQuantity(state, productId)** — quantity for that product (0 if not in cart)
 
-Used by CartSidebar, Navbar, ProductCard, ProductDetails, Checkout, Profile, SkinQuiz so they all stay in sync.
+Used by CartSidebar, Navbar, ProductCard, ProductDetails, Checkout, SkinQuiz so they all stay in sync.
 
 ## 3.6 API Layer
 
@@ -494,7 +464,7 @@ There is no cart API. `cartUtils.js` is the “persistence layer”: `loadCartFr
 ## 4.1 Overview
 
 - **Orders:** There is **no Redux orders slice**. Orders are created and read via **ordersAPI.js** (MockAPI). Checkout creates an order and then sends it to **n8n** for confirmation email (and optional MockAPI update).
-- **Checkout:** Reads cart and profile from Redux; user fills shipping form; on confirm: create order → send to n8n → clear cart and show success.
+- **Checkout:** Reads cart from Redux; user fills shipping form; on confirm: create order → send to n8n → clear cart and show success.
 - **AI:** Skin quiz result is analyzed with **analyzeQuizResult.js** (rule-based). Recommendations come from **aiRecommendation.js**: if `VITE_GEMINI_API_KEY` is set, it uses **Google Gemini**; otherwise **Smart Matching** (local scoring). **aiPrompt.js** builds the Gemini prompt.
 
 ## 4.2 File Structure
@@ -573,7 +543,7 @@ If n8n fails: showToast error, leave cart; order already saved in MockAPI
 ## 4.6 Architecture: Where n8n and AI Fit
 
 - **n8n:** External automation. Checkout sends order payload to a webhook. The n8n workflow can send a confirmation email and/or call MockAPI to set `emailSent`. The front-end only POSTs and checks success/error; it doesn’t know the workflow steps.
-- **AI:** Quiz answers → analyzeQuizResult (client) → getRecommendations (client) → either Gemini (network) or Smart Matching (local). Result is saved to user (Redux + localStorage) and displayed on SkinQuiz and Profile. So “AI” is either a remote API (Gemini) or a local scoring function; the rest of the app just consumes `{ routine, summary }`.
+- **AI:** Quiz answers → analyzeQuizResult (client) → getRecommendations (client) → either Gemini (network) or Smart Matching (local). Result is saved to user (Redux + localStorage) and displayed on SkinQuiz. So “AI” is either a remote API (Gemini) or a local scoring function; the rest of the app just consumes `{ routine, summary }`.
 
 ---
 
@@ -611,7 +581,7 @@ src/
 
 ## 5.4 Why Separate from User?
 
-So that “shopper profile” (name, email, quiz) and “admin access” are independent. A jury member can log in as admin without having a user profile, and a user can have a profile without being admin.
+So that “shopper profile” (name, email, quiz) and “admin access” are independent. Admin access is independent of shopper quiz data.
 
 ---
 
@@ -621,7 +591,7 @@ So that “shopper profile” (name, email, quiz) and “admin access” are ind
 
 - **main.jsx:** Renders the app inside `Provider` (Redux) and `ToastProvider` (context for toasts). So the whole app has access to the store and to `useToast()`.
 - **App.jsx:** Uses React Router: `BrowserRouter`, `Routes`, `Route`. Defines `/admin-login`, user routes under `UserRoutes` (Navbar + Outlet + Footer + CartSidebar), and admin routes under `AdminRoutes` (AdminSidebar + Outlet). On mount it runs `dispatch(loadUserFromStorage())` so user state is restored.
-- **UserRoutes.jsx:** Layout: Navbar, main (Outlet), Footer, CartSidebar. So every user page (/, /catalogue, /products/:id, /skin-quiz, /profile, /checkout) shares the same shell and cart.
+- **UserRoutes.jsx:** Layout: Navbar, main (Outlet), Footer, CartSidebar. So every user page (/, /catalogue, /products/:id, /skin-quiz, /checkout) shares the same shell and cart.
 - **AdminRoutes.jsx:** Guard: if not admin, redirect to /admin-login; else layout with AdminSidebar and Outlet.
 
 ## 6.2 Route Table
@@ -634,19 +604,18 @@ So that “shopper profile” (name, email, quiz) and “admin access” are ind
 | /products/:id | UserRoutes | ProductDetails |
 | /recommendation | UserRoutes | Recommendation (file may be missing; route exists in App.jsx) |
 | /skin-quiz | UserRoutes | SkinQuiz |
-| /profile | UserRoutes | Profile |
 | /checkout | UserRoutes | Checkout |
 | /manage | AdminRoutes | ManageProducts |
 | /Dashboard | AdminRoutes | Dashboard |
 | /addProduct | AdminRoutes | addProduct |
 | /orders | AdminRoutes | Orders |
 
-**Recommendation route:** `App.jsx` defines `/recommendation` and imports `Recommendation` from `./pages/User/Recommendation`. In the current repo there is no `Recommendation.jsx` in `pages/User/` (only Catalogue, Checkout, Home, ProductDetails, SkinQuiz, Profile, Cart). So that route will fail at runtime unless you:
+**Recommendation route:** `App.jsx` defines `/recommendation` and imports `Recommendation` from `./pages/User/Recommendation`. In the current repo there is no `Recommendation.jsx` in `pages/User/` (only Catalogue, Checkout, Home, ProductDetails, SkinQuiz, Cart). So that route will fail at runtime unless you:
 
-- **Option A:** Add a `Recommendation.jsx` page that reads `selectRecommendations` and `productsData` from Redux and renders the same routine cards as Profile (or redirects to `/profile`).
+- **Option A:** Add a `Recommendation.jsx` page that reads `selectRecommendations` and `productsData` from Redux and renders the same routine cards as SkinQuiz results.
 - **Option B:** Remove the route and the import from `App.jsx`.
 
-Recommendations are already displayed on the **Skin Quiz results screen** and on the **Profile** page, so the route is optional.
+Recommendations are displayed on the **Skin Quiz results screen**, so the route is optional.
 
 ---
 
@@ -654,33 +623,44 @@ Recommendations are already displayed on the **Skin Quiz results screen** and on
 
 ## 7.1 Overview
 
-The **Skin Quiz** is a 5-question flow that determines the user’s skin type (dry, oily, combination, sensitive, normal), concerns, and age range. The result is **analyzed in the browser** (no AI). Then **recommendations** are generated: either by **Google Gemini** (if `VITE_GEMINI_API_KEY` is set) or by **Smart Matching** (local scoring). The result and recommendations are saved to the **user** slice and localStorage (or to anonymous quiz storage if the user isn’t logged in yet).
+The **Skin Quiz** is a 5-question flow that determines the user’s skin type (dry, oily, combination, sensitive, normal), concerns, and age range. The result is **analyzed in the browser** (no AI). Then **recommendations** are generated: either by **Google Gemini** (if `VITE_GEMINI_API_KEY` is set) or by **Smart Matching** (local scoring). The result and recommendations are saved to the **user** slice and localStorage.
 
-**In simple words:** User answers 5 questions → we compute skin type with points → we ask “which products fit?” either to Gemini or to a local scoring function → we show a 4-step routine (cleanser, serum, moisturizer, sunscreen) and a summary, and we save that so Profile and future visits can show it.
+**In simple words:** User answers 5 questions → we compute skin type with points → we ask “which products fit?” either to Gemini or to a local scoring function → we show a 4-step routine (cleanser, serum, moisturizer, sunscreen) and a summary, and we save that so SkinQuiz and future visits can show it.
 
 ## 7.2 File Structure
 
 ```
 src/
 ├── pages/User/
-│   └── SkinQuiz.jsx           # Quiz UI, results, recommended products with Add to Cart
+│   └── SkinQuiz.jsx              # Route entry: Redux, state, effects, handlers; renders subcomponents by viewMode
 ├── components/quiz/
-│   └── QuizComponents.jsx     # ProgressBar, QuestionCard, QuizButton
+│   ├── QuizComponents.jsx        # ProgressBar, QuestionCard, QuizButton
+│   └── SkinQuiz/                 # UI-only subcomponents
+│       ├── IntroScreen.jsx       # Intro + Start button
+│       ├── QuizScreen.jsx        # Questions, answers, Back/Next
+│       ├── LoadingScreen.jsx     # Loading state
+│       ├── ErrorScreen.jsx       # Error + Try Again
+│       ├── ResultsScreen.jsx     # Skin type, AI summary, routine cards
+│       └── RecommendedProductCard.jsx  # Product card with Add to Cart
+├── data/
+│   └── skinQuizData.js           # quizQuestions, skinTypeInfo, routineSteps
 ├── utils/
-│   └── analyzeQuizResult.js   # analyzeAnswers, formatQuizResult, mapSkinTypeToFrench, mapConcernsToFrench
+│   └── analyzeQuizResult.js      # analyzeAnswers, formatQuizResult, mapSkinTypeToFrench, mapConcernsToFrench
 ├── services/
-│   └── aiRecommendation.js    # getRecommendations, callGemini, generateSmartRecommendations
+│   └── aiRecommendation.js       # getRecommendations, callGemini, generateSmartRecommendations
 ├── lib/
-│   └── aiPrompt.js           # buildRecommendationPrompt, getSystemMessage
+│   └── aiPrompt.js               # buildRecommendationPrompt, getSystemMessage
 ├── features/
-│   ├── user/                  # saveQuizResultThunk, saveRecommendationsThunk, clearQuizDataThunk
-│   └── products/              # fetchProducts so we have products to recommend
+│   ├── user/                     # saveQuizResultThunk, saveRecommendationsThunk, clearQuizDataThunk
+│   └── products/                 # fetchProducts so we have products to recommend
 ```
 
 ## 7.3 Architecture Relation
 
-- **SkinQuiz.jsx** — Uses products slice (fetchProducts, productsData), user slice (selectQuizResult, selectRecommendations, selectIsLoggedIn), user thunks (saveQuizResultThunk, saveRecommendationsThunk, clearQuizDataThunk), cart (addToCart, openCart), analyzeQuizResult.analyzeAnswers, aiRecommendation.getRecommendations, userAPI.saveAnonymousQuiz.
+- **SkinQuiz.jsx** — Route entry page; holds all logic. Uses products slice (fetchProducts, productsData), user slice (selectQuizResult, selectRecommendations), user thunks (saveQuizResultThunk, saveRecommendationsThunk, clearQuizDataThunk), analyzeQuizResult.analyzeAnswers, aiRecommendation.getRecommendations. Renders IntroScreen, QuizScreen, LoadingScreen, ErrorScreen, ResultsScreen based on viewMode.
+- **SkinQuiz subcomponents** — UI-only, receive props from SkinQuiz.jsx. ResultsScreen uses RecommendedProductCard (which uses cart for Add to Cart).
 - **QuizComponents.jsx** — Presentational: progress bar, question card, buttons. No Redux.
+- **skinQuizData.js** — Static data: quiz questions, skin type display info, routine step labels.
 - **analyzeQuizResult.js** — Pure functions: answers (array of indices) → skin type, concerns, age range. Used only by SkinQuiz and (for French labels) aiPrompt.
 - **aiRecommendation.js** — getRecommendations(quizResult, products) is the only entry point; decides Gemini vs Smart Matching; returns { routine, summary }.
 - **aiPrompt.js** — Used only when Gemini is used; builds the prompt and system message.
@@ -694,7 +674,7 @@ handleNext() on last step
    ↓
 setIsLoading(true); analyzeAnswers(answers) → quizResult
    ↓
-If logged in: dispatch(saveQuizResultThunk(quizResult))
+dispatch(saveQuizResultThunk(quizResult))
    ↓
 Ensure products: if empty, dispatch(fetchProducts()) and wait
    ↓
@@ -703,7 +683,7 @@ getRecommendations(quizResult, products) — async
   If VITE_GEMINI_API_KEY: buildRecommendationPrompt + getSystemMessage → fetch Gemini → parse JSON
   Else or on error: generateSmartRecommendations(quizResult, products)
    ↓
-setRecommendations(recs); if logged in dispatch(saveRecommendationsThunk(recs)); else saveAnonymousQuiz({ quizResult, recommendations: recs })
+setRecommendations(recs); dispatch(saveRecommendationsThunk(recs))
    ↓
 setViewMode('results'); setIsLoading(false)
    ↓
@@ -717,15 +697,15 @@ Results screen: skin type, summary, routine cards (with product details from pro
 
 ## 7.6 Logic Explanation
 
-- **When the page loads:** If the user is logged in and already has saved quizResult and recommendations, SkinQuiz shows the results view immediately (useEffect sets viewMode and local state from Redux).
-- **When the user answers and clicks “Get My Routine”:** We analyze answers locally, optionally save quiz result, fetch products if needed, call getRecommendations (Gemini or Smart Matching), then save recommendations (Redux + localStorage or anonymous) and show the results.
+- **When the page loads:** If the user already has saved quizResult and recommendations, SkinQuiz shows the results view immediately (useEffect sets viewMode and local state from Redux).
+- **When the user answers and clicks “Get My Routine”:** We analyze answers locally, save quiz result, fetch products if needed, call getRecommendations (Gemini or Smart Matching), then save recommendations (Redux + localStorage) and show the results.
 - **When the user clicks “Add to Cart” on a recommendation:** Same as anywhere else: dispatch(addToCart(...)), optional openCart, toast. Cart and products state are unchanged; only cart slice updates.
-- **When the user clicks “Retake Quiz”:** If logged in, dispatch(clearQuizDataThunk()); reset local state (step, answers, quizResult, recommendations, viewMode) so the quiz starts over.
+- **When the user clicks “Retake Quiz”:** dispatch(clearQuizDataThunk()); reset local state (step, answers, quizResult, recommendations, viewMode) so the quiz starts over.
 
 ## 7.7 Possible Jury Questions
 
 - **Where is the quiz result stored?**  
-  In Redux `state.user.quizResult` and in localStorage as part of the user object (or in `beautymatch_anonymous_quiz` if not logged in).
+  In Redux `state.user.quizResult` and in localStorage under key `beautymatch_user`.
 
 - **How does “AI” work?**  
   If you set `VITE_GEMINI_API_KEY`, we send the skin profile and product list to Google Gemini and ask for a JSON routine + summary. If you don’t set it (or Gemini fails), we use Smart Matching: we score each product by skin type and concerns and pick the best per category. Both paths return the same shape: { routine: { cleanser, serum, moisturizer, sunscreen }, summary }.
@@ -755,7 +735,7 @@ src/
 ## 8.3 How It Connects
 
 - **main.jsx** — Renders `<ToastProvider><App /></ToastProvider>`. Every page and component is inside the provider, so they can call `useToast()`.
-- **Who uses it:** ProductCard, ProductDetails, SkinQuiz, Profile, Checkout, PopUpUpdate, popUpDelete, addProduct (success/error feedback).
+- **Who uses it:** ProductCard, ProductDetails, SkinQuiz, Checkout, PopUpUpdate, popUpDelete, addProduct (success/error feedback).
 
 ## 8.4 Data Flow
 
@@ -804,9 +784,10 @@ beauty-match/
 │   │   ├── cart/             # cartSlice, cartSelectors, cartUtils, CartItem
 │   │   └── orders/           # ordersAPI only (no slice)
 │   ├── pages/
-│   │   ├── User/             # Home, Catalogue, ProductDetails, SkinQuiz, Profile, Checkout
+│   │   ├── User/             # Home, Catalogue, ProductDetails, SkinQuiz, Checkout
 │   │   └── Admin/            # AdminLogin, Dashboard, ManageProducts, addProduct, Orders
-│   ├── components/           # Layout, shop, cart, quiz, modals, Toast, DashboardComponents
+│   ├── components/           # Layout, shop, cart, quiz (QuizComponents, SkinQuiz subcomponents), modals, Toast
+│   ├── data/                 # skinQuizData (quiz questions, skin type info, routine steps)
 │   ├── services/             # n8nService, aiRecommendation
 │   ├── lib/                  # aiPrompt
 │   └── utils/                # adminAuth, analyzeQuizResult
@@ -857,7 +838,7 @@ So: **UI event → dispatch or direct API call → backend/webhook → Redux or 
 - **AI:** The quiz runs in the browser; answers are analyzed locally (analyzeQuizResult). Recommendations are either:
   - **Gemini:** Front-end builds a prompt (aiPrompt), calls Gemini API (aiRecommendation), parses JSON, returns routine + summary.
   - **Smart Matching:** Same entry point (getRecommendations), but logic is local scoring and category matching; no network.
-Result is stored in Redux + localStorage (user feature) and shown on SkinQuiz and Profile. So “AI” is a **service** consumed by the user flow; state lives in the user slice.
+Result is stored in Redux + localStorage (user feature) and shown on SkinQuiz. So “AI” is a **service** consumed by the user flow; state lives in the user slice.
 
 ---
 

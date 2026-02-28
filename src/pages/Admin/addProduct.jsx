@@ -11,12 +11,16 @@ const initialProduct = {
 };
 
 export default function AddProduct() {
+  // Redux & hooks
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.products);
   const { showToast } = useToast();
+
+  // Local state
   const [product, setProduct] = useState(initialProduct);
 
+  // Handlers
   const handleChange = (e) => {
     setProduct((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -31,7 +35,7 @@ export default function AddProduct() {
       const res = await axios.post('https://api.cloudinary.com/v1_1/dgqoop9qz/image/upload', formData);
       setProduct((prev) => ({ ...prev, imageUrl: res.data.secure_url }));
     } catch (err) {
-      console.log('Image upload error', err);
+      // Image upload failed - user can try again
     }
   };
 

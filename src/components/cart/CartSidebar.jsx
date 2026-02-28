@@ -26,18 +26,18 @@ import {
 import CartItem from '../../features/cart/CartItem';
 
 export default function CartSidebar() {
+  // Redux & routing
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  // Get cart state from Redux
+
+  // Cart state from Redux
   const isOpen = useSelector(selectCartIsOpen);
   const items = useSelector(selectCartItems);
   const totalPrice = useSelector(selectCartTotal);
   const totalQuantity = useSelector(selectCartQuantity);
   const isEmpty = useSelector(selectCartIsEmpty);
   
-  // ===== EVENT HANDLERS =====
-  
+  // Handlers
   const handleClose = () => {
     dispatch(closeCart());
   };
