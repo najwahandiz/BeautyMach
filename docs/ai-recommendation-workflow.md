@@ -280,8 +280,8 @@ The `analyzeAnswers` function uses a **scoring system**:
 │        │               │                                        │
 │        │               └── Error → Fall back to Smart Matching  │
 │        │                                                        │
-│        └── NO ───▶ Use Smart Matching (no API needed)           │
-│                                                                  │
+│        └── NO ───▶ Use Smart Matching (no API needed)          │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -824,11 +824,11 @@ export function clearUser() {
 │  │  Location: Inside SkinQuiz.jsx component                  │   │
 │  │                                                           │   │
 │  │  What's stored:                                           │   │
-│  │  ├── viewMode (intro, quiz, results)                     │   │
-│  │  ├── currentStep (which question)                        │   │
-│  │  ├── answers (user's selections)                         │   │
-│  │  ├── isLoading (loading state)                           │   │
-│  │  └── error (error messages)                              │   │
+│  │  ├── viewMode (intro, quiz, results)                      │   │
+│  │  ├── currentStep (which question)                         │   │
+│  │  ├── answers (user's selections)                          │   │
+│  │  ├── isLoading (loading state)                            │   │
+│  │  └── error (error messages)                               │   │
 │  │                                                           │   │
 │  │  ⚠️ This data is TEMPORARY - lost on page refresh        │   │
 │  └──────────────────────────────────────────────────────────┘   │

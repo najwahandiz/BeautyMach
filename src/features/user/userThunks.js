@@ -1,17 +1,7 @@
-/**
- * userThunks.js
- *
- * Async thunks for quiz and recommendations (persisted in localStorage).
- * No user profile or login.
- */
-
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { loadUser, updateUser } from './userAPI';
 
-/**
- * Load Quiz Data From Storage
- * Called on app start to restore quiz result and recommendations.
- */
+/*Load Quiz Data From Storage*/
 export const loadUserFromStorage = createAsyncThunk(
   'user/loadFromStorage',
   async () => {
@@ -20,15 +10,7 @@ export const loadUserFromStorage = createAsyncThunk(
   }
 );
 
-/**
- * Save Quiz Result
- * 
- * Saves the skin quiz result to user data.
- * This is called after the user completes the quiz.
- * 
- * Usage:
- * dispatch(saveQuizResultThunk({ skinType: 'oily', concerns: ['acne'] }))
- */
+/*Save Quiz Result*/
 export const saveQuizResultThunk = createAsyncThunk(
   'user/saveQuizResult',
   async (quizResult) => {
@@ -39,15 +21,7 @@ export const saveQuizResultThunk = createAsyncThunk(
   }
 );
 
-/**
- * Save AI Recommendations
- * 
- * Saves the AI-generated recommendations to user data.
- * This is called after receiving recommendations from AI.
- * 
- * Usage:
- * dispatch(saveRecommendationsThunk({ routine: {...}, summary: '...' }))
- */
+/*Save AI Recommendations*/
 export const saveRecommendationsThunk = createAsyncThunk(
   'user/saveRecommendations',
   async (recommendations) => {
@@ -58,15 +32,7 @@ export const saveRecommendationsThunk = createAsyncThunk(
   }
 );
 
-/**
- * Clear Quiz Data
- * 
- * Clears quiz result and recommendations from user data.
- * This allows the user to restart the quiz fresh.
- * 
- * Usage:
- * dispatch(clearQuizDataThunk())
- */
+/*Clear Quiz Data*/
 export const clearQuizDataThunk = createAsyncThunk(
   'user/clearQuizData',
   async () => {

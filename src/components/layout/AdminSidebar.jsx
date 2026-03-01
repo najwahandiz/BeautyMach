@@ -1,10 +1,3 @@
-/**
- * AdminSidebar.jsx
- *
- * Admin dashboard sidebar. Admin auth is separate from user profile;
- * logout here only clears admin session, not user data.
- */
-
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {

@@ -1,21 +1,14 @@
 /**
- * aiRecommendation.js
- * 
  * Service for AI-powered skincare recommendations.
  * Supports Google Gemini AI with smart matching fallback.
  */
 
 import { buildRecommendationPrompt, getSystemMessage } from '../lib/aiPrompt';
 
-// ============================================================
-// CONFIG
-// ============================================================
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 
-// ============================================================
-// MAIN EXPORT
-// ============================================================
+
 export async function getRecommendations(quizResult, products) {
   console.log('🔍 Getting recommendations for:', quizResult);
   console.log('📦 Available products:', products?.length || 0);
@@ -42,7 +35,7 @@ export function getAIProvider() {
 
 // ============================================================
 // GEMINI IMPLEMENTATION
-// ============================================================
+
 async function callGemini(quizResult, products) {
   if (!products?.length) throw new Error('No products available');
 

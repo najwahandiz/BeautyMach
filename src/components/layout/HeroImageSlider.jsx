@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 
-const images = ["/hero.jpg", "/hero1.jpg", "/hero3.jpg", "/hero.jpg", "/hero3.jpg", "/hero1.jpg", "/hero.jpg"];
+const images = ["/hero.jpg", "/hero1.jpg", "/hero2.jpg", "/hero4.jpg"];
 
 export default function HeroImageSlider() {
   const [index, setIndex] = useState(0);
@@ -9,7 +9,7 @@ export default function HeroImageSlider() {
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % images.length);
-    }, 5000); // 5 seconds feels more premium/calm
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 

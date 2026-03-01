@@ -1,8 +1,4 @@
-/**
- * Navbar.jsx
- *
- * Cart and admin session. Admin uses its own login (adminAuth).
- */
+
 
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -121,6 +117,31 @@ export default function Navbar() {
                 </span>
               )}
             </button>
+            {isAdmin && (
+              <NavLink 
+                to="/Dashboard" 
+                onClick={closeMobile}
+                className={({ isActive }) => `
+                  flex items-center gap-2 px-3 py-3 rounded-xl font-medium transition-colors
+                  ${isActive ? 'bg-amber-100 text-amber-700' : 'text-amber-700 bg-amber-50 hover:bg-amber-100'}
+                `}
+              >
+                <LayoutDashboard size={18} />
+                
+              </NavLink>
+            )}
+
+            {/* Admin Login Link - if NOT admin */}
+            {!isAdmin && (
+              <NavLink 
+                to="/admin-login" 
+                onClick={closeMobile}
+                className="flex items-center gap-2 px-3 py-3 rounded-xl font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+              >
+                <LayoutDashboard size={18} />
+                
+              </NavLink>
+            )}
 
             
           </div>
@@ -152,6 +173,7 @@ export default function Navbar() {
                 <Menu size={24} className="text-gray-700" />
               )}
             </button>
+            
           </div>
         </div>
       </div>

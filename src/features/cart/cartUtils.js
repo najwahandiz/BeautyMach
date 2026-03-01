@@ -1,27 +1,15 @@
-/**
- * cartUtils.js
- * 
- * Helper functions for localStorage operations.
- * Keeps cart data persistent across browser refreshes.
- * 
- * WHY LOCALSTORAGE?
- * - Cart survives page refresh
- * - Cart survives closing browser
- * - No server needed for cart persistence
- * - Simple and beginner-friendly
- */
 
 // Key used to store cart in localStorage
 const CART_STORAGE_KEY = 'beautyMatch_cart';
 
 /**
  * LOAD CART FROM LOCALSTORAGE
- * 
  * Called when app starts to restore saved cart.
  * Returns null if no cart exists or if there's an error.
  * 
  * @returns {Object|null} The saved cart state or null
  */
+
 export const loadCartFromStorage = () => {
   try {
     const storedData = localStorage.getItem(CART_STORAGE_KEY);
@@ -29,7 +17,6 @@ export const loadCartFromStorage = () => {
     if (storedData) {
       const parsedCart = JSON.parse(storedData);
       
-      // Make sure isOpen is false when loading (don't restore open state)
       return {
         ...parsedCart,
         isOpen: false
@@ -45,10 +32,6 @@ export const loadCartFromStorage = () => {
 
 /**
  * SAVE CART TO LOCALSTORAGE
- * 
- * Called after every cart modification.
- * Saves items, totalQuantity, and totalPrice.
- * 
  * @param {Object} cartState - The current cart state from Redux
  */
 export const saveCartToStorage = (cartState) => {
@@ -66,12 +49,7 @@ export const saveCartToStorage = (cartState) => {
   }
 };
 
-/**
- * CLEAR CART FROM LOCALSTORAGE
- * 
- * Removes cart data completely from localStorage.
- * Called when user clears their cart.
- */
+
 export const clearCartStorage = () => {
   try {
     localStorage.removeItem(CART_STORAGE_KEY);

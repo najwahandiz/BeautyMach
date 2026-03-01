@@ -1,17 +1,3 @@
-/**
- * CartSidebar.jsx
- * 
- * Slide-in cart drawer that appears from the right side.
- * Shows all cart items, total price, and checkout button.
- * 
- * Features:
- * - Smooth slide-in/slide-out animation
- * - Overlay backdrop that closes cart on click
- * - Scrollable items list
- * - Sticky footer with total and checkout
- * - Empty cart state with elegant message
- */
-
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { X, ShoppingBag, Sparkles } from 'lucide-react';
@@ -26,11 +12,9 @@ import {
 import CartItem from '../../features/cart/CartItem';
 
 export default function CartSidebar() {
-  // Redux & routing
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Cart state from Redux
   const isOpen = useSelector(selectCartIsOpen);
   const items = useSelector(selectCartItems);
   const totalPrice = useSelector(selectCartTotal);

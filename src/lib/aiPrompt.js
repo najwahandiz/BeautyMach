@@ -1,36 +1,17 @@
 /**
- * aiPrompt.js
- * 
- * Builds the instruction prompt for Google Gemini AI.
- * 
- * ============================================================
- * WHAT THIS FILE DOES:
- * ============================================================
- * 
  * This file creates the "instructions" that we send to Gemini.
- * Think of it like writing a letter to an expert asking for advice.
- * 
+
  * The prompt includes:
  * 1. User's skin profile (from quiz analysis)
  * 2. List of available products (from our database)
  * 3. Instructions on what to do
  * 4. The exact format we want the answer in (JSON)
  * 
- * NOTE: This file is ONLY used when Gemini API is enabled.
- * Smart Matching (the fallback) doesn't need a prompt.
- * 
  */
 
 import { mapSkinTypeToFrench, mapConcernsToFrench } from '../utils/analyzeQuizResult';
 
 /**
- * Build the main prompt for Google Gemini
- * 
- * This function creates a detailed instruction for Gemini that includes:
- * - User's skin profile (type, concerns, age)
- * - All available products with their details
- * - Clear instructions on what products to select
- * - The exact JSON format for the response
  * 
  * @param {Object} quizResult - The analyzed quiz result
  * @param {string} quizResult.skinType - User's skin type (dry/oily/combination/sensitive/normal)
@@ -47,29 +28,11 @@ export function buildRecommendationPrompt(quizResult, products) {
   const concernsFr = mapConcernsToFrench(concerns);
 
   const ALLOWED_CATEGORIES = [
-    'cleanser',
-    'cleansers',
-    'nettoyant',
+    'cleanser',    
     'serum',
-    'serums',
-    'sérum',
     'moisturizer',
-    'moisturizers',
-    'hydratant',
-    'crème',
     'sunscreen',
-    'spf',
-    'solaire'
   ];
-  
-
-  // Filter products to only include relevant categories
-  // const relevantProducts = products.filter(p => 
-  //   ['Nettoyant', 'Sérum', 'Hydratant', 'Crème', 'Solaire', 'cleanser', 'serum', 'moisturizer', 'sunscreen', 'cleansers', 'serums', 'moisturizers'].some(
-  //     cat => p.subcategory?.toLowerCase().includes(cat.toLowerCase()) || 
-  //            p.category?.toLowerCase().includes(cat.toLowerCase())
-  //   )
-  // );
 
   const relevantProducts = products.filter(p => {
     const text = `${p.category} ${p.subcategory}`.toLowerCase();
