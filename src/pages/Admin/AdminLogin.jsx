@@ -1,15 +1,11 @@
 /**
- * AdminLogin.jsx
- *
- * Admin-only login. Not related to user profile.
- * - Dashboard is accessible only after entering correct admin username/password.
- * - Simple client-side auth (no backend). Uses its own session storage.
+ * AdminLogin: Simple client-side auth using localStorage.
  */
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Lock, User, Eye, EyeOff, AlertCircle, ArrowLeft } from 'lucide-react';
-import { validateAdminCredentials, setAdminSession, ADMIN_CREDENTIALS } from '../../utils/adminAuth';
+import { validateAdminCredentials, setAdminSession } from '../../utils/adminAuth';
 
 export default function AdminLogin() {
   const navigate = useNavigate();

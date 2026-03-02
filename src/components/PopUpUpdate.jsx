@@ -46,7 +46,9 @@ export default function PopUpUpdate({ isOpen, onClose, productToUpdate }) {
     data.append('file', file);
     data.append('upload_preset', 'skinCareProducts');
     try {
-      const res = await axios.post('https://api.cloudinary.com/v1_1/dgqoop9qz/image/upload', data);
+      const uploadUrl = import.meta.env.VITE_CLOUDINARY_UPLOAD_URL;
+      if (!uploadUrl) throw new Error('VITE_CLOUDINARY_UPLOAD_URL is not set');
+      const res = await axios.post(uploadUrl, data);
       setFormData((prev) => ({ ...prev, imageUrl: res.data.secure_url }));
     } catch (err) {
       // Image upload failed - user can try again

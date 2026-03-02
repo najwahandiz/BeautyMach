@@ -32,7 +32,9 @@ export default function AddProduct() {
     formData.append('file', file);
     formData.append('upload_preset', 'skinCareProducts');
     try {
-      const res = await axios.post('https://api.cloudinary.com/v1_1/dgqoop9qz/image/upload', formData);
+      const uploadUrl = import.meta.env.VITE_CLOUDINARY_UPLOAD_URL;
+      if (!uploadUrl) throw new Error('VITE_CLOUDINARY_UPLOAD_URL is not set');
+      const res = await axios.post(uploadUrl, formData);
       setProduct((prev) => ({ ...prev, imageUrl: res.data.secure_url }));
     } catch (err) {
       // Image upload failed - user can try again

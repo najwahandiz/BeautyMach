@@ -1,21 +1,14 @@
-
 const ADMIN_SESSION_KEY = 'beautymatch_admin_session';
 
-/** Hardcoded admin credentials  */
-export const ADMIN_CREDENTIALS = {
-  username: 'admin',
-  password: 'admin123',
-};
+const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME ?? '';
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD ?? '';
 
 /**
  * Check if the given username/password match admin credentials.
  * @returns {boolean}
  */
 export function validateAdminCredentials(username, password) {
-  return (
-    username === ADMIN_CREDENTIALS.username &&
-    password === ADMIN_CREDENTIALS.password
-  );
+  return username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
 }
 
 /**

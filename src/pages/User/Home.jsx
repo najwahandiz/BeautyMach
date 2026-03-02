@@ -17,10 +17,8 @@ export default function Home() {
   useEffect(() => {
     if (!productsData?.length) dispatch(fetchProducts());
   }, [dispatch, productsData]);
-
-  const featuredProducts = productsData
-    ? [...productsData].filter((p) => (p.quantityVendu || 0) > 0).sort((a, b) => (b.quantityVendu || 0) - (a.quantityVendu || 0)).slice(0, 3)
-    : [];
+  
+  const featuredProducts = productsData?.filter(p => p.tags === 'best-seller') || [];
 
   return (
     <div className="bg-gradient-to-b from-[#fffaf5] via-white to-[#fffaf5]">

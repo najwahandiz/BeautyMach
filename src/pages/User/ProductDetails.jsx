@@ -1,4 +1,4 @@
-// Product details: URL id → find in Redux → show product or not found.
+// Product details: shows a single product by URL id, or "not found" if it doesn't exist.
 import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -8,23 +8,11 @@ import { addToCart, increaseQuantity, decreaseQuantity, openCart } from '../../f
 import { selectIsInCart, selectItemQuantity } from '../../features/cart/cartSelectors';
 import { useToast } from '../../components/Toast';
 
-const CATEGORY_LABELS = {
-  cleansers: 'Cleanser', moisturizers: 'Moisturizer', serums: 'Serum', sunscreen: 'Sun Protection',
-  masks: 'Mask', toners: 'Toner', exfoliants: 'Exfoliant'
-};
-
-function getCategoryLabel(category) {
-  return CATEGORY_LABELS[category] || category || 'Skincare';
-}
-
+// Parse ingredients: string "a, b, c" or array → array
 function getIngredients(ingredients) {
   if (!ingredients) return [];
   if (typeof ingredients === 'string') return ingredients.split(',').map((i) => i.trim()).filter(Boolean);
   return Array.isArray(ingredients) ? ingredients : [];
-}
-
-function getSize(product) {
-  return product?.size || null;
 }
 
 export default function ProductDetails() {
@@ -36,17 +24,15 @@ export default function ProductDetails() {
   const isInCart = useSelector((state) => selectIsInCart(state, id));
   const quantityInCart = useSelector((state) => selectItemQuantity(state, id)) || 0;
 
+  // Fetch products if we don't have them yet
   useEffect(() => {
     if (!productsData?.length) dispatch(fetchProducts());
   }, [dispatch, productsData]);
 
-  const addToCartPayload = product
-    ? { id: product.id, name: product.name, price: product.price || 0, imageUrl: product.imageUrl || '', category: product.subcategory || '' }
-    : null;
-
   const handleAddToCart = () => {
-    if (!addToCartPayload) return;
-    dispatch(addToCart(addToCartPayload));
+    if (!product) return;
+    const payload = { id: product.id, name: product.name, price: product.price || 0, imageUrl: product.imageUrl || '', category: product.subcategory || '' };
+    dispatch(addToCart(payload));
     showToast(`${product.name} added to cart!`, 'success');
     dispatch(openCart());
   };
@@ -61,9 +47,10 @@ export default function ProductDetails() {
     if (product && quantityInCart > 1) dispatch(decreaseQuantity(product.id));
   };
 
-  const isBestSeller = product?.quantityVendu > 50;
+  const isBestSeller = product.tags === 'best-seller';
   const ingredients = getIngredients(product.ingredients);
-  const size = getSize(product);
+  const size = product.size || null;
+  const categoryLabel = (product.subcategory || 'Skincare').charAt(0).toUpperCase() + (product.subcategory || 'Skincare').slice(1);
 
   if (loading) {
     return (
@@ -129,7 +116,7 @@ export default function ProductDetails() {
           </Link>
         </nav>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
-          <div className="g:sticky lg:top-24 lg:self-start sticky top-20 ">
+          <div className="lg:sticky lg:top-24 lg:self-start sticky top-20">
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-gradient-to-br from-[#fffaf5] to-[#fff5ee] border border-gray-100 shadow-2xl shadow-gray-200/50 group">
               {product.imageUrl ? (
                 <img
@@ -156,7 +143,7 @@ export default function ProductDetails() {
             <div className="mb-4">
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#9E3B3B]/10 text-[#9E3B3B] text-xs font-semibold rounded-full">
                 <Droplets className="w-3 h-3" />
-                {getCategoryLabel(product.subcategory)}
+                {categoryLabel}
               </span>
             </div>
             <h1
