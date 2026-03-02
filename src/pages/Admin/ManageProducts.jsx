@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProducts } from '../../features/products/productsThunks';
 import { Eye, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import PopUpDelete from '../../components/popUpDelete';
-import PopUpUpdate from '../../components/PopUpUpdate';
+import PopUpDelete from '../../components/admin/popUpDelete';
+import PopUpUpdate from '../../components/admin/PopUpUpdate';
 import ProductFilters from '../../features/products/ProductFilters';
 
 const PRODUCTS_PER_PAGE = 8;
@@ -51,9 +51,9 @@ function PaginationControls({ currentPage, totalPages, startIndex, endIndex, tot
 }
 
 // Stock status for display (Out of Stock / Low Stock / In Stock)
-function getStockStatus(stock) {
+function getStockStatus(stock,product) {
   if (stock === 0) return { text: 'Out of Stock', color: 'text-red-600', bg: 'bg-red-50' };
-  if (stock < 20) return { text: 'Low Stock', color: 'text-amber-600', bg: 'bg-amber-50' };
+  if (stock < product.minStock) return { text: 'Low Stock', color: 'text-amber-600', bg: 'bg-amber-50' };
   return { text: 'In Stock', color: 'text-green-600', bg: 'bg-green-50' };
 }
 
@@ -139,7 +139,7 @@ export default function ManageProducts() {
 
               <tbody className="divide-y divide-gray-50">
                 {currentProducts.map((product) => {
-                  const status = getStockStatus(product.stock ?? 0);
+                  const status = getStockStatus(product.stock ?? 0, product);
                   
                   return (
                     <tr key={product.id} className="hover:bg-[#9E3B3B]/10 transition-colors">
@@ -214,7 +214,7 @@ export default function ManageProducts() {
 
         <div className="md:hidden space-y-4">
           {currentProducts.map((product) => {
-            const status = getStockStatus(product.stock ?? 0);
+            const status = getStockStatus(product.stock ?? 0, product);
             return (
               <div
                 key={product.id} 

@@ -1,16 +1,15 @@
 import { useEffect, useState, useMemo } from 'react';
 import { getOrders } from '../../features/orders/ordersAPI';
 import { Search, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import { EmptyState } from '../../components/DashboardComponents';
+import { EmptyState } from '../../components/admin/DashboardComponents';
 
-const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
+const FIXED_PAGE_SIZE = 10; // You can change this value if needed
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     let cancelled = false;
@@ -32,10 +31,10 @@ export default function Orders() {
     );
   }, [orders, search]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / FIXED_PAGE_SIZE));
   const currentPage = Math.min(Math.max(1, page), totalPages);
-  const start = (currentPage - 1) * pageSize;
-  const paginatedOrders = useMemo(() => filteredOrders.slice(start, start + pageSize), [filteredOrders, start, pageSize]);
+  const start = (currentPage - 1) * FIXED_PAGE_SIZE;
+  const paginatedOrders = useMemo(() => filteredOrders.slice(start, start + FIXED_PAGE_SIZE), [filteredOrders, start]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
@@ -65,21 +64,9 @@ export default function Orders() {
               Gestionnaire de ventes • {filteredOrders.length} transactions
             </p>
           </div>
-          
-          <div className="flex items-center gap-3">
-            
-            <div className="h-8 w-[1px] bg-gray-200 mx-2 hidden md:block"></div>
-            <select
-              value={pageSize}
-              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-              className="bg-transparent text-xs font-bold uppercase tracking-widest text-gray-500 focus:outline-none cursor-pointer"
-            >
-              {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n} par page</option>)}
-            </select>
-          </div>
         </div>
 
-        {/* Search Bar - Minimalist Floating */}
+        {/* Search Bar */}
         <div className="relative mb-10 group">
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-[#9E3B3B] transition-colors" />
           <input
@@ -97,20 +84,20 @@ export default function Orders() {
         ) : (
           <div className="space-y-6">
             
-            {/* Desktop Table - Elegant & Spacious */}
+            {/* Desktop Table */}
             <div className="hidden md:block bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/20 overflow-hidden">
               <table className="w-full">
                 <thead className="bg-[#9E3B3B] text-white">
-                  <tr className="bg-[#9E3B3B] text-white border-b border-gray-50">
-                    <th className="px-8 py-5 text-left text-[12px] font-bold uppercase tracking-[0.2em] ">Référence</th>
-                    <th className="px-8 py-5 text-left text-[12px] font-bold uppercase tracking-[0.2em] ">Client</th>
-                    <th className="px-8 py-5 text-left text-[12px] font-bold uppercase tracking-[0.2em] ">Date d'achat</th>
-                    <th className="px-8 py-5 text-right text-[12px] font-bold uppercase tracking-[0.2em] ">Montant</th>
+                  <tr>
+                    <th className="px-8 py-5 text-left text-[12px] font-bold uppercase tracking-[0.2em]">Référence</th>
+                    <th className="px-8 py-5 text-left text-[12px] font-bold uppercase tracking-[0.2em]">Client</th>
+                    <th className="px-8 py-5 text-left text-[12px] font-bold uppercase tracking-[0.2em]">Date d'achat</th>
+                    <th className="px-8 py-5 text-right text-[12px] font-bold uppercase tracking-[0.2em]">Montant</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {paginatedOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-[#9E3B3B]/10 transition-colors group">
+                    <tr key={order.id} className="hover:bg-[#9E3B3B]/10 transition-colors">
                       <td className="px-8 py-6">
                         <span className="text-xs font-bold text-[#9E3B3B] bg-gray-100 px-2 py-1 rounded">#{order.id}</span>
                       </td>
@@ -126,14 +113,13 @@ export default function Orders() {
                       <td className="px-8 py-6 text-right">
                         <span className="text-sm font-bold text-gray-900">${Number(order.total).toFixed(2)}</span>
                       </td>
-                      
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            {/* Mobile Cards - Boutique Style */}
+            {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
               {paginatedOrders.map((order) => (
                 <div key={order.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
@@ -155,7 +141,7 @@ export default function Orders() {
               ))}
             </div>
 
-            {/* Pagination - Clean & Minimalist */}
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between pt-8">
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-widest">

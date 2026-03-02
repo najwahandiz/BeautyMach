@@ -1,5 +1,4 @@
-/**
- * Service for AI-powered skincare recommendations.
+/**Service for AI-powered skincare recommendations.
  * Supports Google Gemini AI with smart matching fallback.
  */
 
@@ -20,7 +19,7 @@ export async function getRecommendations(quizResult, products) {
       ? await callGemini(quizResult, products)
       : generateSmartRecommendations(quizResult, products);
   } catch (error) {
-    console.error('❌ AI failed, falling back:', error.message);
+    console.error(' AI failed, falling back:', error.message);
     return handleFallback(quizResult, products);
   }
 }
@@ -40,7 +39,7 @@ async function callGemini(quizResult, products) {
   if (!products?.length) throw new Error('No products available');
 
   const prompt = buildRecommendationPrompt(quizResult, products);
-  console.log('📝 Calling Gemini API...');
+  console.log(' Calling Gemini API...');
 
   const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
     method: 'POST',
@@ -106,7 +105,7 @@ async function handleFallback(quizResult, products) {
   try {
     return generateSmartRecommendations(quizResult, products);
   } catch (error) {
-    console.error('❌ Smart matching failed:', error);
+    console.error(' Smart matching failed:', error);
     return {
       routine: { cleanser: null, serum: null, moisturizer: null, sunscreen: null },
       summary: `We encountered an issue generating recommendations. Please try again or browse our catalog directly.`
@@ -117,9 +116,7 @@ async function handleFallback(quizResult, products) {
 function generateSmartRecommendations(quizResult, products) {
   const skinType = quizResult?.skinType || 'normal';
   const concerns = quizResult?.concerns || [];
-  
-  console.log('🎯 Smart Matching for:', { skinType, concerns, productCount: products?.length || 0 });
-  
+    
   if (!products?.length) {
     return {
       routine: { cleanser: null, serum: null, moisturizer: null, sunscreen: null },
@@ -132,7 +129,7 @@ function generateSmartRecommendations(quizResult, products) {
     
     // Skin type match
     const productSkinType = (product.skinType || '').toLowerCase();
-    if (productSkinType.includes(skinType) || productSkinType.includes('all') || productSkinType.includes('tout')) {
+    if (productSkinType.includes(skinType) || productSkinType.includes('all')) {
       score += 10;
     }
     
@@ -160,7 +157,7 @@ function generateSmartRecommendations(quizResult, products) {
 
   const findBestProduct = (categories) => {
     const matching = products.filter(product => {
-      const cat = (product.subcategory || product.category || '').toLowerCase();
+      const cat = (product.subcategory).toLowerCase();
       return categories.some(c => cat.includes(c.toLowerCase()));
     });
     

@@ -1,18 +1,10 @@
-/**
- * n8nService.js
- *
- * Sends order data to n8n webhook for confirmation email + MockAPI update.
- * Uses Axios and env variable for webhook URL.
- */
+/**Sends order data to n8n webhook for confirmation email + MockAPI update.*/
 
 import axios from 'axios';
 
 const WEBHOOK_URL = import.meta.env.VITE_N8N_ORDER_WEBHOOK_URL;
 
 /**
- * Payload shape expected by n8n webhook:
- * { id, userName, userEmail, items[], total }
- *
  * @param {Object} orderData - { id, userName, userEmail, items, total }
  * @returns {Promise<{ success: boolean, error?: string }>}
  */
@@ -43,7 +35,6 @@ export async function sendOrderToN8n(orderData) {
       return { success: true };
     }
 
-    // Beginner-friendly fallback:
     // If the workflow runs but doesn't return JSON (common if there's no "Respond to Webhook" node),
     // treat any 2xx response as success so checkout can complete and cart can clear.
     if (response.status >= 200 && response.status < 300) {

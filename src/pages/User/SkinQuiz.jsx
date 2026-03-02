@@ -1,9 +1,6 @@
 /**
- * SkinQuiz - Route entry page & main container
- *
  * Handles all logic: Redux, state, effects, navigation.
  * Renders UI-only subcomponents based on viewMode.
- *
  * Views: intro | quiz | loading | results | error
  */
 

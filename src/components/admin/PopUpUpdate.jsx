@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateProduct } from '../features/products/productsThunks';
+import { updateProduct } from '../../features/products/productsThunks';
 import { X, Upload, Package, DollarSign } from 'lucide-react';
-import { useToast } from './Toast';
+import { useToast } from '../Toast';
 import axios from 'axios';
 
 const emptyForm = {

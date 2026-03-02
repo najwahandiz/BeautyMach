@@ -9,7 +9,7 @@ import {
   ProductsCards, 
   EmptyState, 
   LowStockCard 
-} from '../../components/DashboardComponents';
+} from '../../components/admin/DashboardComponents';
 
 export default function Dashboard() {
   const dispatch = useDispatch();
@@ -37,14 +37,14 @@ export default function Dashboard() {
 
   // === From products (real data) ===
   const totalStock = productsData?.reduce((sum, p) => sum + (p.stock || 0), 0) || 0;
-  const lowStockProducts = productsData?.filter(p => (p.stock || 0) < (p.minStock || 10) && (p.stock || 0) > 0) || [];
-  const outOfStockCount = productsData?.filter(p => (p.stock || 0) === 0).length || 0;
+  const lowStockProducts = productsData?.filter(p => (p.stock < p.minStock) ) || [];
+  const outOfStockCount = productsData?.filter(p => (p.stock === 0)).length || 0;
 
   // Top selling products (from products data)
   const topSellingProducts = [...(productsData || [])]
     .filter(p => (p.quantityVendu || 0) > 80)
     .sort((a, b) => (b.quantityVendu || 0) - (a.quantityVendu || 0))
-    .slice(0, 10);
+    .slice(0, 6);
 
   // === 4 Stats Cards: Total Sales, Total Orders, Total Stock, Low Stock Alert ===
   const stats = [

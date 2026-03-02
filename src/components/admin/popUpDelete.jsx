@@ -1,6 +1,6 @@
 import { useDispatch } from 'react-redux';
-import { deleteProduct } from '../features/products/productsThunks';
-import { useToast } from './Toast';
+import { deleteProduct } from '../../features/products/productsThunks';
+import { useToast } from '../Toast';
 
 export default function PopUpDelete({ isOpen, onClose, productDelete }) {
   const dispatch = useDispatch();

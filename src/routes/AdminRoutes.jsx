@@ -1,10 +1,4 @@
-/**
- * AdminRoutes.jsx
- *
- * Protected admin routes. Not related to user profile.
- * - Access only if admin has logged in with correct username/password.
- * - Uses admin session only; never checks user profile or Redux user state.
- */
+/**Protected admin routes. Access only if admin has logged in with correct username/password.*/
 
 import { Navigate, Outlet } from "react-router-dom";
 import AdminSidebar from '../components/layout/AdminSidebar';
